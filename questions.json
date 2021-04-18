@@ -1,0 +1,33 @@
+{
+  "docker": [
+    {
+      "question": "Что такое Docker?",
+      "answers": [
+        ["Платформа для запуска контейнеров", true],
+        ["Синий кит.", false],
+        ["Виртуальная машина для запуска web приложений и БД.", false],
+        ["Виртуальная машина для контейнеров", false]
+      ]
+    },
+    {
+      "question": "Как вывести список image'ей?",
+      "answers": [
+        ["sudo docker print images", false],
+        ["docker images", true],
+        ["docker ps", false],
+        ["docker pi", false]
+      ]
+    }
+  ],
+  "python": [
+    {
+      "question": "Что такое Docker?"
+    }
+  ],
+  "git": [
+
+  ],
+  "django/flusk": [
+
+  ]
+}

@@ -10,3 +10,12 @@ COMMANDS = [
     '/join - Joins an existing game'
 ]
 
+QUESTION_TYPES = [
+    "docker",
+    "python",
+    "git",
+    "django/flusk"
+]
+
+QUESTION_STRING_FIELD = 'question'
+QUESTION_ANSWERS_FIELD = 'answers'
