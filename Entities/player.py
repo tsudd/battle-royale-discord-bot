@@ -7,3 +7,9 @@ class Player(object):
         self.uid = uid
         self.alive = True
         self.name = username
+
+    def kill(self):
+        self.alive = False
+
+    def add_points(self, amount=1):
+        self.score += amount
