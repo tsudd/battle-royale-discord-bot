@@ -2,7 +2,7 @@ import logging
 
 
 class Question(object):
-    def __init__(self, question_string: str, answers: list):
+    def __init__(self, question_string: str, answers: list, description=""):
         self.question_string = question_string
         self.answer = []
 
@@ -17,6 +17,19 @@ class Question(object):
             num += 1
 
         self.answers_string = s
+        self.description = description
+
+    def get_question_message(self):
+        return f"{self.question_string}\n{self.answers_string}\n\nP. S. {self.description}."
+
+    def check_answer(self, answer: list):
+        hits = 0
+        for v in answer:
+            if v in self.answer:
+                hits += 1
+        if hits == len(self.answer):
+            return True
+        return False
 
 
 
