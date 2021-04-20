@@ -1,4 +1,5 @@
 import logging
+import random
 
 
 class Question(object):
@@ -6,7 +7,7 @@ class Question(object):
         self.question_string = question_string
         self.answer = []
 
-        # add shuffling answers
+        random.shuffle(answers)
         s = ""
 
         num = 1
