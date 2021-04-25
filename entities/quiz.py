@@ -1,8 +1,8 @@
 import logging
 import random
 import datetime
-from player import Player
-from question import Question
+from .player import Player
+from .question import Question
 
 from config import QUESTION_STRING_FIELD, QUESTION_ANSWERS_FIELD, PRINT_HL, RULES_MESSAGE, WINNERS_AMOUNT
 
@@ -15,9 +15,8 @@ class Quiz(object):
         self.state = State()
         self.topics = question_types
 
-        self.players = []
         for player in players:
-            self.players[player.uid] = Player(player.uid, player.name)
+            self.players[player.id] = Player(player.id, player.name)
 
         self.questions = []
         for type in question_types:
@@ -34,7 +33,7 @@ class Quiz(object):
 
     def check_answers_and_kill(self, player_answers: dict, question: Question):
         for playerid, answer in player_answers.items():
-            if not question.check_anwer(answer):
+            if not question.check_answer(answer):
                 self.players[playerid].kill()
                 logging.info(f"{self.players[playerid].name} was killed!")
             else:
@@ -44,7 +43,7 @@ class Quiz(object):
 
     def get_question(self):
         if len(self.question_stack) == 0:
-            return None
+            return "No question."
         q = self.question_stack.pop()
 
         logging.info(f"New question was sent to players - {q.question_string}")
@@ -58,7 +57,6 @@ class Quiz(object):
             if not player.alive:
                 ban_uid_list.append(uid)
                 self.state.dead_players.append(player)
-                del self.players[uid]
         self.state.last_ban_amount = len(ban_uid_list)
         self.state.dead_counter += self.state.last_ban_amount
         self.state.player_counter -= self.state.last_ban_amount
@@ -78,15 +76,18 @@ class Quiz(object):
         if self.state.game_in_progress:
             return "Game still in progress."
 
-        ans = f"Quiz results.\nAfter {self.state.question_answered} rounds Arena ended.\n"
+        ans = PRINT_HL
+        ans += f"Quiz results.\nAfter {self.state.question_answered} rounds battle ended.\n"
         ans += PRINT_HL
         ans += "Survivors and scores:\n"
 
         for uid, player in self.players.items():
+            if not player.alive:
+                continue
             ans += f" - {player.name} - {player.score} points.\n"
 
         ans += PRINT_HL
-        ans += "Who didn't make it..."
+        ans += "Who didn't make it...\n"
         date = datetime.datetime.now().strftime("%d.%m.%Y")
         for player in self.state.dead_players:
             ans += f" F to {player.name}(?-{date}) - {player.score} points.\n"
@@ -110,7 +111,7 @@ class Quiz(object):
         ans += "topics. Forewarned is forearmed"
 
         ans += "The game will start when all participants vote (click on the emoji below this message, please."
-        logging.info(f"The game in {self.cid} is about to start")
+        logging.info(f"The game in {self.cid} with {self.state.player_counter} player is about to start")
         return ans
 
     def get_start_new_round(self):
@@ -121,14 +122,11 @@ class Quiz(object):
         logging.info(f"Round {self.state.question_answered} in {self.cid} started.")
         return ans
 
-    def end_game(self):
-        self.state.game_in_progress = False
-
     def is_game_end(self):
         if len(self.players) <= 1:
-            return True
+            self.state.game_in_progress = False
         if self.state.question_answered == self.state.question_amount:
-            return True
+            self.state.game_in_progress = False
 
 
 class State(object):

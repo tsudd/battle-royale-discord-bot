@@ -11,6 +11,8 @@ NINE_EMOJI = "9️⃣"
 
 COMMAND_PREFIX = "!"
 
+VARIANTS = [ONE_EMOJI, TWO_EMOJI, THREE_EMOJI, FOUR_EMOJI]
+
 COMMANDS = [
     '/info - Info about all battle royale bots commands',
     '/startbattle - Starts new battle',
@@ -63,9 +65,16 @@ ARENA_INVITE = "Arena in %s will start in %d seconds. React below to join!"
 WRONG_ARGUMENTS_START = "Unable to create new battle: wrong arguments"
 NO_ARGUMENTS = "Couldn't execute this command: no arguments. Watch !info."
 
+BATTLE_HOLDING = 100
+HOLDING_BETWEEN_MESSAGES = 3
+ANSWER_TIME = 15
+BATTLE_ABORTED = "Battle in %s was aborted: holding for too long."
+END_OF_ANSWERING = "Answers recorded!"
+
 
 ADMIN_CHANNEL = 833201507888267265
 BROADCAST_CHANNEL = "835537204188545073"
+INFO_CHANNEL = 835908933725978645
 
 SECONDS_TO_JOIN = 5
 

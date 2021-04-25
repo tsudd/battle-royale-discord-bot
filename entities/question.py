@@ -21,7 +21,7 @@ class Question(object):
         self.description = description
 
     def get_question_message(self):
-        return f"{self.question_string}\n{self.answers_string}\n\nP. S. {self.description}."
+        return f"{self.question_string}\n{self.answers_string}\nP. S. {self.description}."
 
     def check_answer(self, answer: list):
         hits = 0
