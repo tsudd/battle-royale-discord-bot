@@ -19,6 +19,46 @@
         ["docker pi", false]
       ],
       "description": "Ты сильный, а значит все получиться."
+    },
+    {
+      "question": "Как наследоваться от image'a?",
+      "answers": [
+        ["docker extend NAME", false],
+        ["docker build image --in=parent_image", false],
+        ["FROM image:latest", true],
+        ["docker commit image", false]
+      ],
+      "description": ""
+    },
+    {
+      "question": "Где описывается докер образ?",
+      "answers": [
+        ["DOCKERFILE", true],
+        ["docker log", false],
+        ["image.docker", false],
+        ["В движке докера", false]
+      ],
+      "description": ""
+    },
+    {
+      "question": "Что делает CMD?",
+      "answers": [
+        ["Запускает определенные команды внутри контейнера.", true],
+        ["Открывает командую строку в контейнере.", false],
+        ["Дублирует работу RUN.", false],
+        ["Пробрасывает команды в docker engine.", false]
+      ],
+      "description": ""
+    },
+    {
+      "question": "Как собрать образ?",
+      "answers": [
+        ["docker build image_name", true],
+        ["docker collect image", false],
+        ["FROM docker_base BUILD", false],
+        ["docker create image from old_image", false]
+      ],
+      "description": ""
     }
   ],
   "python": [

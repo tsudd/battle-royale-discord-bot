@@ -1,6 +1,7 @@
 import logging
 import discord
 import json
+import random
 import time as tm
 from discord import utils
 from discord.ext import commands
@@ -155,6 +156,7 @@ class EqualizerBot(commands.Bot):
     async def kick_players(self, players, role):
         for p in players:
             await p.remove_roles(role)
+            # await self.info_channel(SHOUTS[random.randint(len(SHOUTS))])
 
     async def give_role(self, players, role):
         for p in players:
@@ -193,16 +195,3 @@ class EqualizerBot(commands.Bot):
         ans = json.load(fp)
         fp.close()
         return ans
-    #
-    # async def on_raw_reaction_add(self, payload):
-    #     if payload.message_id in self.start_messages:
-    #         mes = self.start_messages[payload.message_id]
-    #
-
-
-
-        # self.add_command(info)
-
-
-
-

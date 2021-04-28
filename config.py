@@ -47,6 +47,7 @@ QUESTION_EMOJI = {
 
 QUESTION_STRING_FIELD = 'question'
 QUESTION_ANSWERS_FIELD = 'answers'
+QUESTION_DESCRIPTION = "description"
 
 QUESTION_DESCRIPTION_FIELD = "description"
 PATH_TO_QUESTIONS_FILE = "questions.json"
@@ -63,13 +64,21 @@ RULES_MESSAGE = f"Hello everyone! If you read this, it means you are on the batt
 
 ARENA_INVITE = "Arena in %s will start in %d seconds. React below to join!"
 WRONG_ARGUMENTS_START = "Unable to create new battle: wrong arguments"
-NO_ARGUMENTS = "Couldn't execute this command: no arguments. Watch !info."
+NO_ARGUMENTS = "Couldn't execute this command: no arguments. Watch info."
 
 BATTLE_HOLDING = 100
 HOLDING_BETWEEN_MESSAGES = 3
 ANSWER_TIME = 15
 BATTLE_ABORTED = "Battle in %s was aborted: holding for too long."
 END_OF_ANSWERING = "Answers recorded!"
+PLAYERS_KICKED = "%s was kicked from %s."
+
+SHOUTS = [
+    "Poor thing!",
+    "Damn son...",
+    "Mission failed.",
+    "Bruh...",
+]
 
 
 ADMIN_CHANNEL = 833201507888267265
