@@ -92,7 +92,7 @@ class Quiz(object):
             return "Game still in progress."
 
         ans = PRINT_HL
-        ans += f"Quiz results.\nAfter {self.state.question_answered} rounds battle ended.\n"
+        ans += f"After {self.state.question_answered} rounds battle ended.\n"
         ans += PRINT_HL
         ans += "Survivors and scores:\n"
 
@@ -122,8 +122,8 @@ class Quiz(object):
 
         ans += "In this game you will meet "
         for topic in self.topics:
-            ans += f"{topic}"
-        ans += "topics. Forewarned is forearmed"
+            ans += f"{topic} "
+        ans += "topics. Forewarned is forearmed. "
 
         ans += "The game will start when all participants vote (click on the emoji below this message, please."
         logging.info(f"The game in {self.cid} with {self.state.player_counter} player is about to start")

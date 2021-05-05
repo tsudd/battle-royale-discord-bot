@@ -30,7 +30,7 @@ class EqualizerBot(commands.Bot):
 
     def link_commands(self):
 
-        @self.command(name="info", pass_context=True)
+        @self.command(name=INFO_COMMAND, pass_context=True)
         async def info(ctx):
             logging.info(f"Passed help command with context - {ctx}")
             ans = "Existing commands:\n"
@@ -38,15 +38,12 @@ class EqualizerBot(commands.Bot):
                 ans += st + '\n'
             await ctx.channel.send(ans)
 
-        @self.command(name="startbattle", pass_context=True)
+        @self.command(name=CREATE_BATTLE_COMMAND, pass_context=True)
         async def start_battle(ctx, *args):
             if ctx.channel.id == ADMIN_CHANNEL:
                 try:
-                    parsed_args = self.parse_arguments([*args])
-                    if len(parsed_args[TOPICS_ACCESSOR]) == 0:
-                        logging.info(NO_ARGUMENTS)
-                        await self.send_admin(NO_ARGUMENTS)
-                        return
+                    parsed_args = EqualizerBot.parse_arguments([*args])
+                    parsed_args[TOPICS_ACCESSOR] = await EqualizerBot.get_topics(ctx)
                 except ValueError:
                     logging.info(WRONG_ARGUMENTS_START)
                     await self.send_admin(WRONG_ARGUMENTS_START)
@@ -76,7 +73,7 @@ class EqualizerBot(commands.Bot):
                 self.battles[new_battle.cid] = [new_battle, text_channel, role]
                 await self.launch_game(new_battle)
 
-        @self.command(name="clean", pass_context=True)
+        @self.command(name=CLEAN_ALL_COMMAND, pass_context=True)
         async def clean_all(ctx):
             if ctx.channel.id == ADMIN_CHANNEL:
                 logging.info("Cleaning all info.")
@@ -89,19 +86,47 @@ class EqualizerBot(commands.Bot):
     async def send_admin(self, message: str):
         await self.admin_channel.send(message)
 
-    def parse_arguments(self, args):
+    @staticmethod
+    async def get_topics(ctx):
+        s = ""
+        for emo, topic in QUESTION_EMOJI_DICT.items():
+            s += f"- {emo} is {topic}.\n"
+        message_string = TOPICS_SELECTION_MESSAGE % s
+        mes = await ctx.reply(message_string, mention_author=True)
+        for emo in QUESTION_EMOJI:
+            await mes.add_reaction(emo)
+        t0 = tm.time()
+        selecting = True
+        while True:
+            message = await ctx.channel.fetch_message(mes.id)
+            logging.info(message.reactions)
+            for r in message.reactions:
+                if r.emoji in QUESTION_EMOJI and r.count > 1:
+                    selecting = False
+                    break
+            if not selecting:
+                break
+            if tm.time() - t0 > TOPIC_CHOOSING:
+                raise ValueError
+            await asyncio.sleep(3)
+        message = await ctx.channel.fetch_message(mes.id)
+        ans = []
+        for r in message.reactions:
+            if r.emoji in QUESTION_EMOJI and r.count > 1:
+                ans.append(QUESTION_EMOJI_DICT[r.emoji])
+        logging.info(f"Got topics {ans}")
+        return ans
+
+    @staticmethod
+    def parse_arguments(args):
         parsed = {
-            TOPICS_ACCESSOR: [],
             ANSWER_TIME_ACCESSOR: ANSWER_TIME,
             QUESTION_AMOUNT_ACCESSOR: DEFAULT_QUESTIONS_AMOUNT
         }
         for i in range(len(args)):
             if args[i].startswith("-") and args[i] in ARGS_FLAGS:
                 parsed[ARGS_FLAGS[args[i]]] = int(args[i + 1])
-            elif args[i] in QUESTION_FLAGS:
-                parsed[TOPICS_ACCESSOR].append(QUESTION_FLAGS[args[i]])
-            else:
-                raise ValueError
+        logging.info(f"Parsed arguments {parsed}")
         return parsed
 
     async def get_players(self, channel, topics=[], time=15):
