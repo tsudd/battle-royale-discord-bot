@@ -1,6 +1,7 @@
 import logging
 import discord
 import json
+import asyncio
 import random
 import time as tm
 from discord import utils
@@ -8,18 +9,17 @@ from discord.ext import commands
 from config import *
 from entities.quiz import Quiz
 
-from info import TOKEN
-
 
 class EqualizerBot(commands.Bot):
-    def __init__(self, command_prefix=COMMAND_PREFIX, self_bot=False):
-        commands.Bot.__init__(self, command_prefix=command_prefix, self_bot=self_bot)
+    def __init__(self, command_prefix=COMMAND_PREFIX, self_bot=False, intents=None):
+        commands.Bot.__init__(self, command_prefix=command_prefix, self_bot=self_bot, intents=intents)
         self.battles = {}
         self.broadcast_channel = None
         self.admin_channel = None
         self.info_channel = None
         self.question_base = EqualizerBot.load_questions()
         self.start_messages = {}
+        logging.info(self.intents.members)
         self.link_commands()
 
     async def on_ready(self):
@@ -42,24 +42,37 @@ class EqualizerBot(commands.Bot):
         async def start_battle(ctx, *args):
             if ctx.channel.id == ADMIN_CHANNEL:
                 try:
-                    topics = self.parse_topics([*args])
-                    if len(topics) == 0:
-                        await self.admin_channel.send(NO_ARGUMENTS)
+                    parsed_args = self.parse_arguments([*args])
+                    if len(parsed_args[TOPICS_ACCESSOR]) == 0:
+                        logging.info(NO_ARGUMENTS)
+                        await self.send_admin(NO_ARGUMENTS)
                         return
                 except ValueError:
-                    await self.admin_channel.send(WRONG_ARGUMENTS_START)
+                    logging.info(WRONG_ARGUMENTS_START)
+                    await self.send_admin(WRONG_ARGUMENTS_START)
                     return
-                logging.info(f"Starting battle with topics {topics}")
+                except Exception as e:
+                    logging.info(e)
+                    return
+                logging.info(f"Starting battle with arguments {parsed_args}")
                 role = await self.crate_arena_role(ctx.guild)
                 text_channel = await self.create_battle_channel(ctx.guild, role)
-                players = await self.get_players(text_channel, topics, SECONDS_TO_JOIN)
-                if len(players[1:]) == 0:
+                players = await self.get_players(text_channel, parsed_args[TOPICS_ACCESSOR], SECONDS_TO_JOIN)
+                if len(players) == 0:
+                    # not enough players
                     s = f"Stopped battle in {text_channel.name}. No players."
                     logging.info(s)
-                    await self.admin_channel.send(s)
+                    await self.send_admin(s)
                     return
                 await self.give_role(players, role)
-                new_battle = Quiz(text_channel.id, ctx.me, players[1:], topics, self.question_base)
+                new_battle = Quiz(
+                    text_channel.id,
+                    ctx.me, players,
+                    parsed_args[TOPICS_ACCESSOR],
+                    self.question_base,
+                    parsed_args[ANSWER_TIME_ACCESSOR],
+                    parsed_args[QUESTION_AMOUNT_ACCESSOR]
+                )
                 self.battles[new_battle.cid] = [new_battle, text_channel, role]
                 await self.launch_game(new_battle)
 
@@ -73,38 +86,51 @@ class EqualizerBot(commands.Bot):
                     logging.info(f"{attrs[1]} was deleted.")
                 self.battles.clear()
 
-    def parse_topics(self, args):
-        topics = []
-        for arg in args:
-            if arg in QUESTION_FLAGS:
-                topics.append(QUESTION_FLAGS[arg])
+    async def send_admin(self, message: str):
+        await self.admin_channel.send(message)
+
+    def parse_arguments(self, args):
+        parsed = {
+            TOPICS_ACCESSOR: [],
+            ANSWER_TIME_ACCESSOR: ANSWER_TIME,
+            QUESTION_AMOUNT_ACCESSOR: DEFAULT_QUESTIONS_AMOUNT
+        }
+        for i in range(len(args)):
+            if args[i].startswith("-") and args[i] in ARGS_FLAGS:
+                parsed[ARGS_FLAGS[args[i]]] = int(args[i + 1])
+            elif args[i] in QUESTION_FLAGS:
+                parsed[TOPICS_ACCESSOR].append(QUESTION_FLAGS[args[i]])
             else:
                 raise ValueError
-        return topics
+        return parsed
 
     async def get_players(self, channel, topics=[], time=15):
         players = []
-        message = await self.broadcast_invite(channel, time)
+        info = TOPICS_SEQUENCE % (",".join(topics))
+        message = await self.broadcast_invite(channel, time, info)
         logging.info(f"Sent invite for {channel.name}.")
         await message.add_reaction(JOIN_EMOJI)
-        tm.sleep(time)
+        await asyncio.sleep(time)
         message = await self.broadcast_channel.fetch_message(message.id)
         if join_react := message.reactions[0]:
             async for user in join_react.users():
+                if user.id == BOT_ID:
+                    continue
                 players.append(user.id)
         players = await self.get_members_with_id(players)
         logging.info(f"List of players to join - {players}")
         return players
 
-    async def get_members_with_id(self, id: list):
+    async def get_members_with_id(self, ids: list):
         members = []
         # bad code
-        for i in id:
+        for i in ids:
+            # members.append(utils.get(self.get_all_members(), id=i))
             members.append(await self.guilds[0].fetch_member(i))
         return members
 
     async def broadcast_invite(self, channel, time, salt=""):
-        return await self.broadcast_channel.send(ARENA_INVITE % (channel.name, time) + salt)
+        return await self.broadcast_channel.send(ARENA_INVITE % (channel.id, time) + salt)
 
     async def launch_game(self, quiz: Quiz):
         channel = await self.fetch_channel(quiz.cid)
@@ -119,19 +145,21 @@ class EqualizerBot(commands.Bot):
             if tm.time() - t0 > BATTLE_HOLDING:
                 await self.admin_channel.send(BATTLE_ABORTED % channel.name)
                 return
-            tm.sleep(HOLDING_BETWEEN_MESSAGES)
+            await asyncio.sleep(HOLDING_BETWEEN_MESSAGES)
         while quiz.state.game_in_progress:
-            mes = await channel.send(quiz.get_start_new_round())
-            tm.sleep(HOLDING_BETWEEN_MESSAGES)
-            answers = await self.get_answers(quiz, channel, mes)
+            quiz.update_answer_statuses()
+            quiz.question_message = await channel.send(quiz.get_start_new_round())
+            await asyncio.sleep(HOLDING_BETWEEN_MESSAGES)
+            answers = await self.get_answers(quiz, channel, quiz.question_message)
+            quiz.question_message = None
             await channel.send(END_OF_ANSWERING)
-            quiz.check_answers_and_kill(answers, quiz.state.last_question)
-            players_to_ban = await self.get_members_with_id(quiz.ban_players())
+            wrong_players = quiz.check_answers_and_kill(answers, quiz.state.last_question)
+            players_to_ban = await self.get_members_with_id(wrong_players)
             logging.info(f"Players to kill {players_to_ban}")
-            await self.kick_players(players_to_ban, self.battles[quiz.cid][2])
+            await self.kick_players(players_to_ban, self.battles[quiz.cid][2], channel)
             await channel.send(quiz.get_round_result())
             quiz.is_game_end()
-            tm.sleep(HOLDING_BETWEEN_MESSAGES)
+            await asyncio.sleep(HOLDING_BETWEEN_MESSAGES)
         result = quiz.get_game_result()
         await self.info_channel.send(result)
         await channel.send(result)
@@ -139,10 +167,12 @@ class EqualizerBot(commands.Bot):
     async def get_answers(self, quiz, channel, mes):
         answers = {}
         for id, player in quiz.players.items():
+            if not player.alive:
+                continue
             answers[player.uid] = []
         for var in VARIANTS:
             await mes.add_reaction(var)
-        tm.sleep(ANSWER_TIME)
+        await asyncio.sleep(quiz.answer_time)
         mes = await channel.fetch_message(mes.id)
         reaction = 1
         for react in mes.reactions:
@@ -153,10 +183,10 @@ class EqualizerBot(commands.Bot):
         logging.info(f"Got reactions from {channel.name} - {answers}")
         return answers
 
-    async def kick_players(self, players, role):
+    async def kick_players(self, players, role, channel):
         for p in players:
+            await channel.send(SHOUTS[random.randint(0, len(SHOUTS) - 1)] + f"{p.name} was removed!")
             await p.remove_roles(role)
-            # await self.info_channel(SHOUTS[random.randint(len(SHOUTS))])
 
     async def give_role(self, players, role):
         for p in players:
@@ -195,3 +225,36 @@ class EqualizerBot(commands.Bot):
         ans = json.load(fp)
         fp.close()
         return ans
+
+    async def on_raw_reaction_add(self, payload):
+        cid = payload.channel_id
+        if cid in self.battles and \
+                self.battles[cid][0].state.game_in_progress and \
+                payload.user_id in self.battles[cid][0].players and \
+                self.battles[cid][0].question_message is not None and\
+                self.battles[cid][0].question_message.id == payload.message_id:
+            quiz = self.battles[cid][0]
+            player = quiz.players[payload.user_id]
+            member = await self.guilds[0].fetch_member(payload.user_id)
+            logging.info(f"{player.name} just reacted!")
+            if not player.answered:
+                player.answered = True
+                logging.info(f"{member.name} is making decision!")
+            else:
+                await quiz.question_message.remove_reaction(payload.emoji, member)
+                logging.info(f"{member.name} tried to select more than one answer. Abort.")
+
+    # pathetic attempt to make canceling answer
+    # async def on_reaction_remove(self, reaction, user):
+    #     cid = reaction.message.channel.id
+    #     logging.info(f"{user.name} canceled reation.")
+    #     if cid in self.battles and \
+    #             self.battles[cid][0].state.game_in_progress and \
+    #             user.id in self.battles[cid][0].players and \
+    #             self.battles[cid][0].question_message is not None and \
+    #             self.battles[cid][0].question_message.id == reaction.message.id:
+    #         quiz = self.battles[cid][0]
+    #         player = quiz.players[user.id]
+    #         if player.answered:
+    #             player.answered = False
+    #             logging.info(f"{user.name} canceled his answer!")

@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 import logging
-import random
-import json
-from time import sleep
+
+import discord
+
 from info import TOKEN
+from config import COMMAND_PREFIX
 
 from bot import EqualizerBot
 
@@ -16,7 +17,10 @@ logging.basicConfig(
 
 
 def main():
-    bot = EqualizerBot()
+    intents = discord.Intents.default()
+    intents.members = True
+    intents.reactions = True
+    bot = EqualizerBot(command_prefix=COMMAND_PREFIX, intents=intents)
     bot.run(TOKEN)
 
 

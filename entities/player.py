@@ -7,6 +7,7 @@ class Player(object):
         self.uid = uid
         self.alive = True
         self.name = username
+        self.answered = False
 
     def kill(self):
         self.alive = False

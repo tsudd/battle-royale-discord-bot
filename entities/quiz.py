@@ -8,22 +8,28 @@ from config import QUESTION_STRING_FIELD, QUESTION_ANSWERS_FIELD, PRINT_HL, RULE
 
 
 class Quiz(object):
-    def __init__(self, cid, initiator, players: list, question_types: list, data: dict):
+    def __init__(self, cid, initiator, players: list, question_types: list, data: dict, time_to_ans=10, rounds=10):
         self.players = {}
         self.cid = cid
         self.initiator = initiator
         self.state = State()
         self.topics = question_types
+        self.answer_time = time_to_ans
+        self.rounds_amount = rounds
+        self.question_message = None
 
         for player in players:
             self.players[player.id] = Player(player.id, player.name)
 
         self.questions = []
-        for type in question_types:
-            for question in data[type]:
-                self.questions.append(Question(question[QUESTION_STRING_FIELD], question[QUESTION_ANSWERS_FIELD]))
+        diff_question = []
+        for typ in question_types:
+            diff_question += data[typ]
 
-        random.shuffle(self.questions)
+        random.shuffle(diff_question)
+
+        for question in diff_question[:self.rounds_amount]:
+            self.questions.append(Question(question[QUESTION_STRING_FIELD], question[QUESTION_ANSWERS_FIELD]))
 
         self.question_stack = [*self.questions]
         self.state.player_counter = len(self.players)
@@ -32,14 +38,21 @@ class Quiz(object):
         logging.info(f"Game in {self.cid} with {self.state.question_amount} questions was created.")
 
     def check_answers_and_kill(self, player_answers: dict, question: Question):
+        kill_uid_list = []
         for playerid, answer in player_answers.items():
             if not question.check_answer(answer):
                 self.players[playerid].kill()
                 logging.info(f"{self.players[playerid].name} was killed!")
+                self.state.dead_players.append(self.players[playerid])
+                kill_uid_list.append(playerid)
             else:
                 logging.info(f"{self.players[playerid].name} got points after write answer!")
                 self.players[playerid].add_points(len(question.answer))
+        self.state.last_ban_amount = len(kill_uid_list)
+        self.state.dead_counter += self.state.last_ban_amount
+        self.state.player_counter -= self.state.last_ban_amount
         self.state.question_answered += 1
+        return kill_uid_list
 
     def get_question(self):
         if len(self.question_stack) == 0:
@@ -66,6 +79,8 @@ class Quiz(object):
         ans = f"Round result.\nStill in game {self.state.player_counter}:\n"
 
         for uid, player in self.players.items():
+            if not player.alive:
+                continue
             ans += f" - {player.name} - {player.score} points. (+{self.state.added_score})\n"
 
         ans += f"{self.state.last_ban_amount} players was banned.\n"
@@ -119,14 +134,19 @@ class Quiz(object):
                f"{len(self.players)}.\n"
 
         ans += self.get_question()
+        self.state.last_ban_amount = 0
         logging.info(f"Round {self.state.question_answered} in {self.cid} started.")
         return ans
 
     def is_game_end(self):
-        if len(self.players) <= 1:
+        if self.state.player_counter <= 1:
             self.state.game_in_progress = False
         if self.state.question_answered == self.state.question_amount:
             self.state.game_in_progress = False
+
+    def update_answer_statuses(self):
+        for uid, player in self.players.items():
+            player.answered = False
 
 
 class State(object):
