@@ -4,7 +4,7 @@ import datetime
 from .player import Player
 from .question import Question
 
-from config import PRINT_HL, RULES_MESSAGE, WINNERS_AMOUNT
+from config import *
 from .recorder_config import QUESTION_STRING_FIELD, QUESTION_ANSWERS_FIELD, QUESTION_DESCRIPTION, ID_ACCESSOR
 
 
@@ -72,37 +72,34 @@ class Quiz(object):
         return q.get_question_message()
 
     def get_round_result(self):
-        ans = f"Round result.\nStill in game {self.state.player_counter}:\n"
+        ans = ROUND_RESULT_TOPIC % self.state.player_counter
 
         for uid, player in self.players.items():
             if not player.alive:
                 continue
-            ans += f" - {player.name} - {player.score} points. (+{self.state.added_score})\n"
+            ans += f" - {player.name} - {player.score} {POINTS_NAME}. (+{self.state.added_score})\n"
 
-        ans += f"{self.state.last_ban_amount} players was banned.\n"
+        ans += BANNED_PLAYERS_INFO % self.state.last_ban_amount
         logging.info(f"Round ended.\n{ans}")
         return ans
 
-    def get_game_result(self):
+    def get_game_result(self, arena_num=0):
         if self.state.game_in_progress:
             return "Game still in progress."
 
-        ans = PRINT_HL
-        ans += f"After {self.state.question_answered} rounds battle ended.\n"
-        ans += PRINT_HL
-        ans += "Survivors and scores:\n"
+        ans = GAME_RESULT_TOPIC % (self.state.question_answered, BATTLE_CHANNEL_TEMPLATE % arena_num)
 
         for uid, player in self.players.items():
             if not player.alive:
                 continue
-            ans += f" - {player.name} - {player.score} points.\n"
+            ans += f" - {player.name} - {player.score} {POINTS_NAME}.\n"
 
         ans += PRINT_HL
-        ans += "Who didn't make it...\n"
+        ans += KICKED_PLAYERS_MESSAGE
         date = datetime.datetime.now().strftime("%d.%m.%Y")
         for player in self.state.dead_players:
-            ans += f" F to {player.name}(?-{date}) - {player.score} points.\n"
-
+            ans += f" F to {player.name}(?-{date}) - {player.score} {POINTS_NAME}.\n"
+        ans += DIVADER
         logging.info(f"Round results.\n{ans}")
         return ans
 
@@ -111,24 +108,21 @@ class Quiz(object):
             return f"This game is no longer active."
 
         ans = RULES_MESSAGE % (self.rounds_amount, self.answer_time)
-        ans += f"Lets meet our warriors:\n"
 
         for uid, player in self.players.items():
-            ans += f" - {player.name} - {player.score} points.\n"
+            ans += f" - {player.name} - {player.score} {POINTS_NAME}.\n"
 
-        ans += "In this game you will meet "
+        s = ""
         for topic in self.topics:
-            ans += f"{topic} "
-        ans += "topics. Forewarned is forearmed. "
+            s += f"{topic} "
+        ans += GAME_TOPICS_INFO % s
 
-        ans += "The game will start when all participants vote (click on the emoji below this message, please."
+        ans += CLICK_TO_START_MESSAGE
         logging.info(f"The game in {self.cid} with {self.state.player_counter} player is about to start")
         return ans
 
     def get_start_new_round(self):
-        ans = f"Round {self.state.question_answered + 1}.\n\nPlayers dead {self.state.dead_counter}. Players alive " \
-               f"{len(self.players)}.\n"
-
+        ans = ROUND_START_TOPIC % (self.state.question_answered + 1, self.state.dead_counter, self.state.player_counter)
         ans += self.get_question()
         self.state.last_ban_amount = 0
         logging.info(f"Round {self.state.question_answered} in {self.cid} started.")

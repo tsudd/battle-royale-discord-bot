@@ -87,7 +87,7 @@ RULES_MESSAGE = f"Hello everyone! If you read this, it means you are on the batt
               f"with 4 variants of answer. Use EMOJI to select your answer. You will have %d seconds on every " \
               f"question to select the answer, so after this time your answers will be recorded and processed. Pay " \
               f"attention, because if you are wrong, you will be kicked out of the game. Try to become the king of " \
-              f"Arena or answer all questions. Good luck!!!\n\n"
+              f"Arena or answer all questions. Good luck!!!\n\nLets meet our warriors:\n"
 
 ARENA_INVITE = "Arena in <#%d> will start in %d seconds. React below to join!"
 WRONG_ARGUMENTS_START = "Unable to create new battle: wrong arguments"
@@ -103,6 +103,18 @@ PLAYERS_KICKED = "%s was kicked from %s."
 BATTLE_STOPPED_AND_WHY = "Battle in %s was stop by %s."
 
 ARENA_DELETED = "Battle in %s was stopped and deleted."
+
+ROUND_RESULT_TOPIC = "Round result.\nStill in game %d:\n"
+POINTS_NAME = "points"
+BANNED_PLAYERS_INFO = "%d players was banned.\n"
+
+GAME_RESULT_TOPIC = DIVADER + "After %d rounds battle in %s ended.\n" + PRINT_HL + "Survivors and scores:\n"
+KICKED_PLAYERS_MESSAGE = PRINT_HL + "Who didn't make it...\n"
+
+GAME_TOPICS_INFO = "In this game you will meet %s topics. Forewarned is forearmed."
+CLICK_TO_START_MESSAGE = f"Please, vote {JOIN_EMOJI} below to start."
+
+ROUND_START_TOPIC = "Round %d.\nPlayers dead %d. Players alive %d.\n"
 
 SHOUTS = [
     "Poor thing! ",
