@@ -1,13 +1,17 @@
-import logging
-import discord
-import json
 import asyncio
+import json
+import logging
 import random
+import re
 import time as tm
+
+import discord
 from discord import utils
 from discord.ext import commands
+
 from config import *
 from entities.quiz import Quiz
+from entities.recorder import Recorder
 
 
 class EqualizerBot(commands.Bot):
@@ -19,6 +23,7 @@ class EqualizerBot(commands.Bot):
         self.info_channel = None
         self.question_base = EqualizerBot.load_questions()
         self.start_messages = {}
+        self.recorder = Recorder(PATH_TO_STAT_FILE, self.question_base)
         logging.info(self.intents.members)
         self.link_commands()
 
@@ -71,7 +76,15 @@ class EqualizerBot(commands.Bot):
                     parsed_args[QUESTION_AMOUNT_ACCESSOR]
                 )
                 self.battles[new_battle.cid] = [new_battle, text_channel, role]
-                await self.launch_game(new_battle)
+                try:
+                    await self.launch_game(new_battle)
+                    if new_battle.state.game_ended:
+                        await self.record_results(new_battle)
+                except Exception as e:
+                    logging.info(f"Game {new_battle.cid} stopped by exception {e}.")
+                    if new_battle.cid in self.battles:
+                        await self.admin_channel.send(BATTLE_STOPPED_AND_WHY % (text_channel.name, e))
+                        self.battles[new_battle.cid][0].state.game_in_progress = False
 
         @self.command(name=CLEAN_ALL_COMMAND, pass_context=True)
         async def clean_all(ctx):
@@ -82,6 +95,32 @@ class EqualizerBot(commands.Bot):
                     await attrs[2].delete()
                     logging.info(f"{attrs[1]} was deleted.")
                 self.battles.clear()
+            else:
+                await ctx.reply("Nice try you dummy.")
+
+        @self.command(name=DELETE_BATTLE_COMMAND, pass_context=True)
+        async def clean_arena(ctx, *args):
+            if ctx.channel.id == ADMIN_CHANNEL:
+                arguments = [*args]
+                logging.info(f"Got arguments to delete: {arguments}")
+                if len(arguments) > 0:
+                    for a in arguments:
+                        cid = int(re.match(CHANNEL_LINK_REGEX, a).group(1))
+                        ch = await self.fetch_channel(cid)
+                        logging.info(f"Deleting channel {ch} with {cid} id.")
+                        if ch is not None and ch.id in self.battles:
+                            await self.clean_game(cid)
+
+        @self.command(name="ping", pass_context=True)
+        async def pong(ctx, *arg):
+            await ctx.channel.send(f"Pong {[*arg]}")
+
+        @self.command(name=GET_PLAYER_INFO_COMMAND, pass_context=True)
+        async def get_player_info(ctx):
+            ans = ""
+            for user in ctx.message.mentions:
+                ans += self.recorder.get_player(user.id) + '\n'
+            await self.admin_channel.send(ans)
 
     async def send_admin(self, message: str):
         await self.admin_channel.send(message)
@@ -129,7 +168,7 @@ class EqualizerBot(commands.Bot):
         logging.info(f"Parsed arguments {parsed}")
         return parsed
 
-    async def get_players(self, channel, topics=[], time=15):
+    async def get_players(self, channel, topics, time=15):
         players = []
         info = TOPICS_SEQUENCE % (",".join(topics))
         message = await self.broadcast_invite(channel, time, info)
@@ -188,6 +227,7 @@ class EqualizerBot(commands.Bot):
         result = quiz.get_game_result()
         await self.info_channel.send(result)
         await channel.send(result)
+        quiz.state.game_ended = True
 
     async def get_answers(self, quiz, channel, mes):
         answers = {}
@@ -217,12 +257,12 @@ class EqualizerBot(commands.Bot):
         for p in players:
             await p.add_roles(role)
 
-    async def clean_game(self, quiz):
-        logging.info(f"Cleaning battle in {quiz.id}")
-        attrs = self.battles[quiz.id]
+    async def clean_game(self, cid):
+        logging.info(f"Cleaning battle {cid} in {self.battles}.")
+        attrs = self.battles[cid]
         await attrs[1].delete()
         await attrs[2].delete()
-        del self.battles[quiz.id]
+        del self.battles[cid]
 
     async def create_battle_channel(self, guild, role):
         name = BATTLE_CHANNEL_TEMPLATE % (len(self.battles) + 1)
@@ -243,6 +283,11 @@ class EqualizerBot(commands.Bot):
         role = await guild.create_role(name=role_name)
         logging.info(f"{role_name} role was created. {role}")
         return role
+
+    async def record_results(self, quiz):
+        for p in quiz.players.values():
+            logging.info(f"Making record for {p.name}")
+            self.recorder.update_or_add_player(p, quiz)
 
     @staticmethod
     def load_questions():

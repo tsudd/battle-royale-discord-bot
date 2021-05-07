@@ -1,6 +1,7 @@
 {
   "docker": [
     {
+      "id": 1,
       "question": "Что такое Docker?",
       "answers": [
         ["Платформа для запуска контейнеров", true],
@@ -11,6 +12,7 @@
       "description": "Не знаешь - отчисляйся."
     },
     {
+      "id": 2,
       "question": "Как вывести список image'ей?",
       "answers": [
         ["sudo docker print images", false],
@@ -21,6 +23,7 @@
       "description": "Ты сильный, а значит все получиться."
     },
     {
+      "id": 3,
       "question": "Как наследоваться от image'a?",
       "answers": [
         ["docker extend NAME", false],
@@ -31,6 +34,7 @@
       "description": ""
     },
     {
+      "id": 4,
       "question": "Где описывается докер образ?",
       "answers": [
         ["DOCKERFILE", true],
@@ -41,6 +45,7 @@
       "description": ""
     },
     {
+      "id": 5,
       "question": "Что делает CMD?",
       "answers": [
         ["Запускает определенные команды внутри контейнера.", true],
@@ -51,6 +56,7 @@
       "description": ""
     },
     {
+      "id": 6,
       "question": "Как собрать образ?",
       "answers": [
         ["docker build image_name", true],

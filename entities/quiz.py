@@ -4,7 +4,8 @@ import datetime
 from .player import Player
 from .question import Question
 
-from config import QUESTION_STRING_FIELD, QUESTION_ANSWERS_FIELD, PRINT_HL, RULES_MESSAGE, WINNERS_AMOUNT
+from config import PRINT_HL, RULES_MESSAGE, WINNERS_AMOUNT
+from .recorder_config import QUESTION_STRING_FIELD, QUESTION_ANSWERS_FIELD, QUESTION_DESCRIPTION, ID_ACCESSOR
 
 
 class Quiz(object):
@@ -29,7 +30,12 @@ class Quiz(object):
         random.shuffle(diff_question)
 
         for question in diff_question[:self.rounds_amount]:
-            self.questions.append(Question(question[QUESTION_STRING_FIELD], question[QUESTION_ANSWERS_FIELD]))
+            self.questions.append(Question(
+                question[QUESTION_STRING_FIELD],
+                question[QUESTION_ANSWERS_FIELD],
+                question[ID_ACCESSOR]
+                )
+            )
 
         self.question_stack = [*self.questions]
         self.state.player_counter = len(self.players)
@@ -114,11 +120,11 @@ class Quiz(object):
         if not self.state.game_in_progress:
             return f"This game is no longer active."
 
-        ans = RULES_MESSAGE
+        ans = RULES_MESSAGE % (self.rounds_amount, self.answer_time)
         ans += f"Lets meet our warriors:\n"
 
         for uid, player in self.players.items():
-            ans += f" - {player.name} - {player.score} points.\n\n"
+            ans += f" - {player.name} - {player.score} points.\n"
 
         ans += "In this game you will meet "
         for topic in self.topics:

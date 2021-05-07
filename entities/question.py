@@ -3,9 +3,10 @@ import random
 
 
 class Question(object):
-    def __init__(self, question_string: str, answers: list, description=""):
+    def __init__(self, question_string: str, answers: list, id_arg=0):
         self.question_string = question_string
         self.answer = []
+        self.id = id_arg
 
         random.shuffle(answers)
         s = ""
@@ -18,10 +19,10 @@ class Question(object):
             num += 1
 
         self.answers_string = s
-        self.description = description
+        # self.description = description
 
     def get_question_message(self):
-        return f"{self.question_string}\n{self.answers_string}\nP. S. {self.description}."
+        return f"{self.question_string}\n{self.answers_string}\n"
 
     def check_answer(self, answer: list):
         hits = 0

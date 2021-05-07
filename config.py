@@ -17,6 +17,7 @@ CREATE_BATTLE_COMMAND = "mkarena"
 CLEAN_ALL_COMMAND = "clean"
 INFO_COMMAND = "info"
 DELETE_BATTLE_COMMAND = "rmarena"
+GET_PLAYER_INFO_COMMAND = "get"
 
 COMMANDS = [
     f'!{INFO_COMMAND} - Info about all battle royale bots commands',
@@ -69,12 +70,8 @@ QUESTION_EMOJI_DICT = {
     "🐘": "django"
 }
 
-QUESTION_STRING_FIELD = 'question'
-QUESTION_ANSWERS_FIELD = 'answers'
-QUESTION_DESCRIPTION = "description"
-
-QUESTION_DESCRIPTION_FIELD = "description"
 PATH_TO_QUESTIONS_FILE = "questions.json"
+PATH_TO_STAT_FILE = "stat.json"
 
 VARIANTS = [ONE_EMOJI, TWO_EMOJI, THREE_EMOJI, FOUR_EMOJI]
 
@@ -101,6 +98,7 @@ TOPICS_SELECTION_MESSAGE = "To start arena choose one or more topics below.\n" \
 BATTLE_ABORTED = "Battle in %s was aborted: holding for too long."
 END_OF_ANSWERING = "Answers recorded!"
 PLAYERS_KICKED = "%s was kicked from %s."
+BATTLE_STOPPED_AND_WHY = "Battle in %s was stop by %s."
 
 SHOUTS = [
     "Poor thing! ",
@@ -123,4 +121,6 @@ SECONDS_TO_JOIN = 5
 BATTLE_CHANNEL_TEMPLATE = "Arena #%d"
 BATTLE_ROLE_TEMPLATE = "Arena %d warrior"
 
+# other
+CHANNEL_LINK_REGEX = r"<#([\d]+)>"
 
