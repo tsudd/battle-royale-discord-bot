@@ -30,16 +30,17 @@ DEFAULT_LAST_ARENA = None
 DEFAULT_WINS = 0
 DEFAULT_RIGHTS = 0
 
-DEFAULT_FILENAME = "../stat.json"
+DEFAULT_FILENAME = "stat.json"
 
+# stat outputs
 INFO_TEXT = f"""Info about <@%d>:
 Arenas played - %d.
-Average lifetime - %d%.
+Average lifetime - %d percent.
 Last arena - %s.
 Right answers in total - %d.
 Wins - %d.
 """
 
-WRONGS_TITLE = "The most bad questions(question - wrong answers amount:\n"
+WRONGS_TITLE = "The most bad questions(question - wrong answers amount):\n"
 NO_QUESTIONS = "Couldn't get question string: wrong key."
 NO_PLAYER = "No info about <@%d>."

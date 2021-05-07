@@ -1,3 +1,4 @@
+import aiofiles as aiof
 import json
 import logging
 import datetime
@@ -43,12 +44,14 @@ class Recorder(object):
         else:
             model.add_bad_question(player.bad_question)
 
-    def save_data(self):
+    async def save_data(self):
+        records = []
+        for p in self.records.values():
+            records.append(p.get_dict())
+        data = {PLAYERS_MODELS_ACCESSOR: records}
         logging.info(f"Saving stats in file {DEFAULT_FILENAME}")
-        fs = open(DEFAULT_FILENAME, "w")
-        data = {PLAYERS_MODELS_ACCESSOR: list(self.records.values())}
-        json.dump(data, fs)
-        fs.close()
+        with open(DEFAULT_FILENAME, "w") as fs:
+            json.dump(data, fs)
 
     @staticmethod
     def load_data(filename):

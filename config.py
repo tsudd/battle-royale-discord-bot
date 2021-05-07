@@ -31,6 +31,7 @@ COMMANDS = [
 ADMIN_CHANNEL = 833201507888267265
 BROADCAST_CHANNEL = "835537204188545073"
 INFO_CHANNEL = 835908933725978645
+CATEGORY_ID = 840303711544934407
 
 BOT_ID = 833194405594529803
 
@@ -76,6 +77,7 @@ PATH_TO_STAT_FILE = "stat.json"
 VARIANTS = [ONE_EMOJI, TWO_EMOJI, THREE_EMOJI, FOUR_EMOJI]
 
 # info outputs
+DIVADER = "#" * 50 + '\n'
 PRINT_HL = "-" * 50 + '\n'
 WINNERS_AMOUNT = 1
 
@@ -99,6 +101,8 @@ BATTLE_ABORTED = "Battle in %s was aborted: holding for too long."
 END_OF_ANSWERING = "Answers recorded!"
 PLAYERS_KICKED = "%s was kicked from %s."
 BATTLE_STOPPED_AND_WHY = "Battle in %s was stop by %s."
+
+ARENA_DELETED = "Battle in %s was stopped and deleted."
 
 SHOUTS = [
     "Poor thing! ",

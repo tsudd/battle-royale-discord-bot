@@ -80,6 +80,7 @@ class EqualizerBot(commands.Bot):
                     await self.launch_game(new_battle)
                     if new_battle.state.game_ended:
                         await self.record_results(new_battle)
+                        await self.save_data()
                 except Exception as e:
                     logging.info(f"Game {new_battle.cid} stopped by exception {e}.")
                     if new_battle.cid in self.battles:
@@ -109,7 +110,10 @@ class EqualizerBot(commands.Bot):
                         ch = await self.fetch_channel(cid)
                         logging.info(f"Deleting channel {ch} with {cid} id.")
                         if ch is not None and ch.id in self.battles:
+                            await self.info_channel(ARENA_DELETED % ch.name)
                             await self.clean_game(cid)
+            else:
+                await ctx.reply("Nice try you dummy.")
 
         @self.command(name="ping", pass_context=True)
         async def pong(ctx, *arg):
@@ -265,7 +269,8 @@ class EqualizerBot(commands.Bot):
         del self.battles[cid]
 
     async def create_battle_channel(self, guild, role):
-        name = BATTLE_CHANNEL_TEMPLATE % (len(self.battles) + 1)
+        arenas = len(guild.categories[0].channels)
+        name = BATTLE_CHANNEL_TEMPLATE % (arenas + 1)
 
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(read_messages=False),
@@ -273,7 +278,7 @@ class EqualizerBot(commands.Bot):
             role: discord.PermissionOverwrite(read_messages=True)
         }
 
-        channel = await guild.create_text_channel(name, overwrites=overwrites)
+        channel = await guild.create_text_channel(name, overwrites=overwrites, category=guild.categories[0])
         logging.info(f"Created channel {name} with {channel.id}.")
         return channel
 
@@ -295,6 +300,9 @@ class EqualizerBot(commands.Bot):
         ans = json.load(fp)
         fp.close()
         return ans
+
+    async def save_data(self):
+        await self.recorder.save_data()
 
     async def on_raw_reaction_add(self, payload):
         cid = payload.channel_id

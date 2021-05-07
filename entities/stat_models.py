@@ -47,7 +47,17 @@ class PlayerModel(object):
         )
         return s
 
-
+    def get_dict(self):
+        ans = {
+            ID_ACCESSOR: self.id,
+            NICK_ACCESSOR: self.nick,
+            LIVECYCLE_ACCESSOR: self.livecycle,
+            LAST_ARENA_ACCESSOR: self.last_arena,
+            USUALLY_WRONG_ACCESSOR: self.wrongs,
+            WINS_ARENAS_ACCESSOR: self.wins,
+            TOTAL_RIGHTS_ACCESSOR: self.total_games
+        }
+        return ans
 
 # class QuestionModel(object):
 #     def __inti__(

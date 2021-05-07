@@ -48,6 +48,7 @@ class Quiz(object):
         for playerid, answer in player_answers.items():
             if not question.check_answer(answer):
                 self.players[playerid].kill()
+                self.players[playerid].bad_question = self.state.last_question
                 logging.info(f"{self.players[playerid].name} was killed!")
                 self.state.dead_players.append(self.players[playerid])
                 kill_uid_list.append(playerid)
@@ -69,17 +70,6 @@ class Quiz(object):
         self.state.last_question = q
 
         return q.get_question_message()
-
-    def ban_players(self):
-        ban_uid_list = []
-        for uid, player in self.players.items():
-            if not player.alive:
-                ban_uid_list.append(uid)
-                self.state.dead_players.append(player)
-        self.state.last_ban_amount = len(ban_uid_list)
-        self.state.dead_counter += self.state.last_ban_amount
-        self.state.player_counter -= self.state.last_ban_amount
-        return ban_uid_list
 
     def get_round_result(self):
         ans = f"Round result.\nStill in game {self.state.player_counter}:\n"
