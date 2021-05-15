@@ -119,7 +119,7 @@ venv.bak/
 
 # mkdocs documentation
 /site
-.idea
+../.idea
 # mypy
 .mypy_cache/
 .dmypy.json
@@ -130,4 +130,4 @@ dmypy.json
 
 
 # Discord
-info.py
+bot/info.py

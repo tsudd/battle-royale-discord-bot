@@ -6,7 +6,7 @@ import discord
 from info import TOKEN
 from config import COMMAND_PREFIX
 
-from bot import EqualizerBot
+from bot.bot import EqualizerBot
 
 
 # Enable logging

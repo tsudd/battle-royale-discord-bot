@@ -1,0 +1,40 @@
+version: "3"
+
+
+services:
+  postgresql:
+    image: postgres:latest
+    hostname: $${POSTGRES_HOST}
+    container_name: arenabot-postgresql
+    env_file:
+      - postgresql/.env
+    ports:
+      - 5432:5432
+    volumes:
+      - bot-db:/var/lib/postgresql/data
+
+
+  backend:
+    image: arenabot-api
+    container_name: django-backend
+    user: appuser
+    build: restful_backend/
+    env_file:
+      - restful_backend/backend/.env
+      - postgresql/.env
+    ports:
+      - 8000:8000
+    volumes:
+      - ./services/backend/service/api:/home/appuser/project/api/
+      - ./services/backend/service/apps:/home/appuser/project/apps/
+      - ./services/backend/service/libs:/home/appuser/project/libs/
+      - ./services/backend/service/static:/home/appuser/project/static/
+      - ./services/backend/service/locales:/home/appuser/project/locales/
+      - ./services/backend/service/settings:/home/appuser/project/settings/
+    depends_on:
+      - postgresql
+    command: /bin/bash -c "
+      python3 manage.py migrate &&
+      python3 manage.py runserver 0.0.0.0:8000"
+volumes:
+  bod-db:

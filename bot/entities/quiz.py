@@ -4,8 +4,8 @@ import datetime
 from .player import Player
 from .question import Question
 
-from config import *
-from .recorder_config import QUESTION_STRING_FIELD, QUESTION_ANSWERS_FIELD, QUESTION_DESCRIPTION, ID_ACCESSOR
+from bot.config import *
+from .recorder_config import QUESTION_STRING_FIELD, QUESTION_ANSWERS_FIELD, ID_ACCESSOR
 
 
 class Quiz(object):
