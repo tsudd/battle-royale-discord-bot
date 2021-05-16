@@ -22,7 +22,7 @@ class QuestionTopic(models.Model):
 
 
 class QuestionVariant(models.Model):
-    variant = models.TextField("Variant 1", max_length=300, default=DEFAULT_EMPTY_STRING)
+    variant = models.TextField("Variant", max_length=300, default=DEFAULT_EMPTY_STRING)
 
     def __str__(self):
         return f"Question variant {self.variant}"
@@ -30,10 +30,10 @@ class QuestionVariant(models.Model):
 
 class Question(models.Model):
     question_string = models.TextField("Question", max_length=300, default=DEFAULT_EMPTY_STRING)
-    variant_1 = models.TextField("Variant 1", max_length=300, default=DEFAULT_EMPTY_STRING)
-    variant_2 = models.TextField("Variant 2", max_length=300, default=DEFAULT_EMPTY_STRING)
-    variant_3 = models.TextField("Variant 3", max_length=300, default=DEFAULT_EMPTY_STRING)
-    variant_4 = models.TextField("Variant 4", max_length=300, default=DEFAULT_EMPTY_STRING)
+    variant_1 = models.ForeignKey(QuestionVariant, on_delete=models.CASCADE, null=True, blank=True)
+    variant_2 = models.ForeignKey(QuestionVariant, on_delete=models.CASCADE, null=True, blank=True)
+    variant_3 = models.ForeignKey(QuestionVariant, on_delete=models.CASCADE, null=True, blank=True)
+    variant_4 = models.ForeignKey(QuestionVariant, on_delete=models.CASCADE, null=True, blank=True)
     right_ind = models.IntegerField("Index of the right answer", default=1)
     topic = models.ForeignKey(QuestionTopic, on_delete=models.CASCADE, null=True, blank=True)
 
@@ -54,10 +54,10 @@ class Session(models.Model):
 class Round(models.Model):
     session = models.ForeignKey(Session, on_delete=models.CASCADE, null=True, blank=True)
     question = models.ForeignKey(Question, on_delete=models.CASCADE, null=True, blank=True)
-    variant_1 = models.TextField("Variant 1", max_length=300, default=DEFAULT_EMPTY_STRING)
-    variant_2 = models.TextField("Variant 2", max_length=300, default=DEFAULT_EMPTY_STRING)
-    variant_3 = models.TextField("Variant 3", max_length=300, default=DEFAULT_EMPTY_STRING)
-    variant_4 = models.TextField("Variant 4", max_length=300, default=DEFAULT_EMPTY_STRING)
+    variant_1 = models.ForeignKey(QuestionVariant, on_delete=models.CASCADE, null=True, blank=True)
+    variant_2 = models.ForeignKey(QuestionVariant, on_delete=models.CASCADE, null=True, blank=True)
+    variant_3 = models.ForeignKey(QuestionVariant, on_delete=models.CASCADE, null=True, blank=True)
+    variant_4 = models.ForeignKey(QuestionVariant, on_delete=models.CASCADE, null=True, blank=True)
     right_ind = models.IntegerField("Index of the right answer", default=-1)
 
     def __str__(self):
