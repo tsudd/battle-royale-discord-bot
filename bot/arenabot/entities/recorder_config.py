@@ -1,8 +1,9 @@
 # fields accessors
 ID_ACCESSOR = "id"
 
-QUESTION_STRING_FIELD = 'question'
-QUESTION_ANSWERS_FIELD = 'answers'
+QUESTION_STRING_FIELD = 'question_string'
+QUESTION_ANSWERS_FIELDS = ["varOne", "varTwo", "varThree", "varFour"]
+QUESTION_RIGHT_ANSWER = "right_ind"
 QUESTION_DESCRIPTION = "description"
 
 # player model

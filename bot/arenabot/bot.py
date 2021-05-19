@@ -73,18 +73,19 @@ class EqualizerBot(commands.Bot):
                 await self.give_role(players, role)
                 new_battle = Quiz(
                     text_channel.id,
-                    ctx.me, players,
-                    parsed_args[TOPIC_ACCESSOR],
-                    self.question_base,
+                    ctx.me,
+                    players,
+                    self.data_provider.get_questions(
+                        parsed_args[TOPIC_ACCESSOR], parsed_args[QUESTION_AMOUNT_ACCESSOR]),
                     parsed_args[ANSWER_TIME_ACCESSOR],
-                    parsed_args[QUESTION_AMOUNT_ACCESSOR]
                 )
                 self.battles[new_battle.cid] = [new_battle, text_channel, role]
                 try:
                     await self.launch_game(new_battle)
-                    if new_battle.state.game_ended:
-                        await self.record_results(new_battle)
-                        await self.save_data()
+                    # make all records, ok da?
+                    # if new_battle.state.game_ended:
+                    #     await self.record_results(new_battle)
+                    #     await self.save_data()
                 except Exception as e:
                     logging.info(
                         f"Game {new_battle.cid} stopped by exception {e}.")
@@ -136,10 +137,12 @@ class EqualizerBot(commands.Bot):
 
     async def get_topic_id(self, ctx):
         s = ""
-        for topic in self.data_provider.topics:
+        logging.info("Getting topic for new game.")
+        for topic in self.data_provider.topics.values():
             s += f"- {topic[EMOJI_ACCESSOR]} is {topic[NAME_ACCESSOR]}.\n"
         message_string = TOPICS_SELECTION_MESSAGE % s
         mes = await ctx.reply(message_string, mention_author=True)
+        logging.debug(f"Sent message to react {mes.id}")
         for emo in self.data_provider.topic_emojis.keys():
             await mes.add_reaction(emo)
         self.messages[mes.id] = (False, None)
@@ -150,6 +153,7 @@ class EqualizerBot(commands.Bot):
                 raise ValueError
             await asyncio.sleep(3)
         ans = self.messages[mes.id][1]
+        del self.messages[mes.id]
         logging.info(f"Got topics {self.data_provider.topic_emojis[ans]}")
         return ans
 
@@ -299,6 +303,8 @@ class EqualizerBot(commands.Bot):
         await self.recorder.save_data()
 
     async def on_raw_reaction_add(self, payload):
+        if payload.user_id == self.user.id:
+            return
         cid = payload.channel_id
         if cid in self.battles and \
                 self.battles[cid][0].state.game_in_progress and \
@@ -317,12 +323,12 @@ class EqualizerBot(commands.Bot):
                 logging.info(
                     f"{member.name} tried to select more than one answer. Abort.")
         elif cid == self.admin_channel.id:
+            emo = str(payload.emoji)
             if payload.message_id in self.messages and \
                     not self.messages[payload.message_id][0] and \
-                    payload.emoji in self.data_provider.topic_emojis:
-                self.messages[payload.message_id][0] = True
-                self.messages[payload.message_id][1] = self.data_provider.topic_emojis[payload.emoji]
-                logging.ingo(
+                    emo in self.data_provider.topic_emojis:
+                self.messages[payload.message_id] = True,  self.data_provider.topic_emojis[emo]
+                logging.info(
                     f"Got {payload.emoji} reaction when selecting topic.")
 
     # pathetic attempt to make canceling answer

@@ -1,12 +1,11 @@
-#!/usr/bin/python3
+#!/home/tsudd/anaconda3/envs/battle-royale-discord-bot/bin/python3
 import logging
 
 import discord
 
-from info import TOKEN
-from config import COMMAND_PREFIX
-
-from bot.bot import EqualizerBot
+from arenabot.info import TOKEN
+from arenabot.config import COMMAND_PREFIX
+from arenabot.bot import EqualizerBot
 
 
 # Enable logging

@@ -4,44 +4,33 @@ import datetime
 from .player import Player
 from .question import Question
 
-from bot.config import *
+from ..config import *
 from .recorder_config import QUESTION_STRING_FIELD, QUESTION_ANSWERS_FIELD, ID_ACCESSOR
 
 
 class Quiz(object):
-    def __init__(self, cid, initiator, players: list, question_types: list, data: dict, time_to_ans=10, rounds=10):
+    def __init__(self, cid, initiator, players: list, topic: list, questions: list, time_to_ans=10):
         self.players = {}
         self.cid = cid
         self.initiator = initiator
         self.state = State()
-        self.topics = question_types
+        self.topic = topic
         self.answer_time = time_to_ans
-        self.rounds_amount = rounds
+        self.rounds_amount = len(questions)
         self.question_message = None
 
         for player in players:
             self.players[player.id] = Player(player.id, player.name)
 
-        self.questions = []
-        diff_question = []
-        for typ in question_types:
-            diff_question += data[typ]
-
-        random.shuffle(diff_question)
-
-        for question in diff_question[:self.rounds_amount]:
-            self.questions.append(Question(
-                question[QUESTION_STRING_FIELD],
-                question[QUESTION_ANSWERS_FIELD],
-                question[ID_ACCESSOR]
-                )
-            )
+        for question in questions:
+            self.questions.append(Question(question))
 
         self.question_stack = [*self.questions]
         self.state.player_counter = len(self.players)
         self.state.question_amount = len(self.questions)
 
-        logging.info(f"Game in {self.cid} with {self.state.question_amount} questions was created.")
+        logging.info(
+            f"Game in {self.cid} with {self.state.question_amount} questions was created.")
 
     def check_answers_and_kill(self, player_answers: dict, question: Question):
         kill_uid_list = []
@@ -53,7 +42,8 @@ class Quiz(object):
                 self.state.dead_players.append(self.players[playerid])
                 kill_uid_list.append(playerid)
             else:
-                logging.info(f"{self.players[playerid].name} got points after write answer!")
+                logging.info(
+                    f"{self.players[playerid].name} got points after write answer!")
                 self.players[playerid].add_points(len(question.answer))
         self.state.last_ban_amount = len(kill_uid_list)
         self.state.dead_counter += self.state.last_ban_amount
@@ -87,7 +77,8 @@ class Quiz(object):
         if self.state.game_in_progress:
             return "Game still in progress."
 
-        ans = GAME_RESULT_TOPIC % (self.state.question_answered, BATTLE_CHANNEL_TEMPLATE % arena_num)
+        ans = GAME_RESULT_TOPIC % (
+            self.state.question_answered, BATTLE_CHANNEL_TEMPLATE % arena_num)
 
         for uid, player in self.players.items():
             if not player.alive:
@@ -118,14 +109,17 @@ class Quiz(object):
         ans += GAME_TOPICS_INFO % s
 
         ans += CLICK_TO_START_MESSAGE
-        logging.info(f"The game in {self.cid} with {self.state.player_counter} player is about to start")
+        logging.info(
+            f"The game in {self.cid} with {self.state.player_counter} player is about to start")
         return ans
 
     def get_start_new_round(self):
-        ans = ROUND_START_TOPIC % (self.state.question_answered + 1, self.state.dead_counter, self.state.player_counter)
+        ans = ROUND_START_TOPIC % (
+            self.state.question_answered + 1, self.state.dead_counter, self.state.player_counter)
         ans += self.get_question()
         self.state.last_ban_amount = 0
-        logging.info(f"Round {self.state.question_answered} in {self.cid} started.")
+        logging.info(
+            f"Round {self.state.question_answered} in {self.cid} started.")
         return ans
 
     def is_game_end(self):

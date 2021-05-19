@@ -31,13 +31,19 @@ class DataProvider(object):
             topics[t['id']] = t
         return topics
 
+    def get_questions(topic, amount):
+        r = DataProvider.__make_get(
+            BACKEND_BASE_URL + QUESTIONS_URL + f"?{TOPIC_QUERY}={topic}&{AMOUNT_QUERY}={amount}")
+        if r is None:
+            raise ValueError("Couldn't get data from backend.")
+        return r.json()
+
     def __make_get(url, headers={}):
         try:
             response = requests.get(url, headers=headers)
-
             response.raise_for_status()
         except HTTPError as http_error:
-            logging.info(f"HTTP error in get request to {url}.")
+            logging.info(f"{http_error} in get request to {url}.")
         except Exception as err:
             logging.info(f"Error {err} occured in request to {url}.")
         else:
