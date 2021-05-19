@@ -9,20 +9,24 @@ import discord
 from discord import utils
 from discord.ext import commands
 
-from config import *
-from entities.quiz import Quiz
-from entities.recorder import Recorder
+from .config import *
+from .entities.quiz import Quiz
+from .entities.recorder import Recorder
+from .dataprovider.data_provider import DataProvider
+from .dataprovider.back_config import NAME_ACCESSOR, EMOJI_ACCESSOR
 
 
 class EqualizerBot(commands.Bot):
     def __init__(self, command_prefix=COMMAND_PREFIX, self_bot=False, intents=None):
-        commands.Bot.__init__(self, command_prefix=command_prefix, self_bot=self_bot, intents=intents)
+        commands.Bot.__init__(
+            self, command_prefix=command_prefix, self_bot=self_bot, intents=intents)
         self.battles = {}
         self.broadcast_channel = None
         self.admin_channel = None
         self.info_channel = None
-        self.question_base = EqualizerBot.load_questions()
-        self.start_messages = {}
+        self.question_base = DataProvider()
+        self.data_provider = DataProvider()
+        self.messages = {}
         self.recorder = Recorder(PATH_TO_STAT_FILE, self.question_base)
         logging.info(self.intents.members)
         self.link_commands()
@@ -48,7 +52,7 @@ class EqualizerBot(commands.Bot):
             if ctx.channel.id == ADMIN_CHANNEL:
                 try:
                     parsed_args = EqualizerBot.parse_arguments([*args])
-                    parsed_args[TOPICS_ACCESSOR] = await EqualizerBot.get_topics(ctx)
+                    parsed_args[TOPIC_ACCESSOR] = await self.get_topic_id(ctx)
                 except ValueError:
                     logging.info(WRONG_ARGUMENTS_START)
                     await self.send_admin(WRONG_ARGUMENTS_START)
@@ -59,7 +63,7 @@ class EqualizerBot(commands.Bot):
                 logging.info(f"Starting battle with arguments {parsed_args}")
                 role = await self.crate_arena_role(ctx.guild)
                 text_channel = await self.create_battle_channel(ctx.guild, role)
-                players = await self.get_players(text_channel, parsed_args[TOPICS_ACCESSOR], SECONDS_TO_JOIN)
+                players = await self.get_players(text_channel, parsed_args[TOPIC_ACCESSOR], SECONDS_TO_JOIN)
                 if len(players) == 0:
                     # not enough players
                     s = f"Stopped battle in {text_channel.name}. No players."
@@ -70,7 +74,7 @@ class EqualizerBot(commands.Bot):
                 new_battle = Quiz(
                     text_channel.id,
                     ctx.me, players,
-                    parsed_args[TOPICS_ACCESSOR],
+                    parsed_args[TOPIC_ACCESSOR],
                     self.question_base,
                     parsed_args[ANSWER_TIME_ACCESSOR],
                     parsed_args[QUESTION_AMOUNT_ACCESSOR]
@@ -82,7 +86,8 @@ class EqualizerBot(commands.Bot):
                         await self.record_results(new_battle)
                         await self.save_data()
                 except Exception as e:
-                    logging.info(f"Game {new_battle.cid} stopped by exception {e}.")
+                    logging.info(
+                        f"Game {new_battle.cid} stopped by exception {e}.")
                     if new_battle.cid in self.battles:
                         await self.admin_channel.send(BATTLE_STOPPED_AND_WHY % (text_channel.name, e))
                         self.battles[new_battle.cid][0].state.game_in_progress = False
@@ -129,35 +134,23 @@ class EqualizerBot(commands.Bot):
     async def send_admin(self, message: str):
         await self.admin_channel.send(message)
 
-    @staticmethod
-    async def get_topics(ctx):
+    async def get_topic_id(self, ctx):
         s = ""
-        for emo, topic in QUESTION_EMOJI_DICT.items():
-            s += f"- {emo} is {topic}.\n"
+        for topic in self.data_provider.topics:
+            s += f"- {topic[EMOJI_ACCESSOR]} is {topic[NAME_ACCESSOR]}.\n"
         message_string = TOPICS_SELECTION_MESSAGE % s
         mes = await ctx.reply(message_string, mention_author=True)
-        for emo in QUESTION_EMOJI:
+        for emo in self.data_provider.topic_emojis.keys():
             await mes.add_reaction(emo)
+        self.messages[mes.id] = (False, None)
         t0 = tm.time()
-        selecting = True
-        while True:
-            message = await ctx.channel.fetch_message(mes.id)
-            logging.info(message.reactions)
-            for r in message.reactions:
-                if r.emoji in QUESTION_EMOJI and r.count > 1:
-                    selecting = False
-                    break
-            if not selecting:
-                break
+        while not self.messages[mes.id][0]:
+            logging.info("Waiting for choosing the topic for new game.")
             if tm.time() - t0 > TOPIC_CHOOSING:
                 raise ValueError
             await asyncio.sleep(3)
-        message = await ctx.channel.fetch_message(mes.id)
-        ans = []
-        for r in message.reactions:
-            if r.emoji in QUESTION_EMOJI and r.count > 1:
-                ans.append(QUESTION_EMOJI_DICT[r.emoji])
-        logging.info(f"Got topics {ans}")
+        ans = self.messages[mes.id][1]
+        logging.info(f"Got topics {self.data_provider.topic_emojis[ans]}")
         return ans
 
     @staticmethod
@@ -172,9 +165,9 @@ class EqualizerBot(commands.Bot):
         logging.info(f"Parsed arguments {parsed}")
         return parsed
 
-    async def get_players(self, channel, topics, time=15):
+    async def get_players(self, channel, topic, time=15):
         players = []
-        info = TOPICS_SEQUENCE % (",".join(topics))
+        info = TOPICS_SEQUENCE % (self.data_provider.topic_emojis[topic])
         message = await self.broadcast_invite(channel, time, info)
         logging.info(f"Sent invite for {channel.name}.")
         await message.add_reaction(JOIN_EMOJI)
@@ -221,7 +214,8 @@ class EqualizerBot(commands.Bot):
             answers = await self.get_answers(quiz, channel, quiz.question_message)
             quiz.question_message = None
             await channel.send(END_OF_ANSWERING)
-            wrong_players = quiz.check_answers_and_kill(answers, quiz.state.last_question)
+            wrong_players = quiz.check_answers_and_kill(
+                answers, quiz.state.last_question)
             players_to_ban = await self.get_members_with_id(wrong_players)
             logging.info(f"Players to kill {players_to_ban}")
             await self.kick_players(players_to_ban, self.battles[quiz.cid][2], channel)
@@ -320,7 +314,16 @@ class EqualizerBot(commands.Bot):
                 logging.info(f"{member.name} is making decision!")
             else:
                 await quiz.question_message.remove_reaction(payload.emoji, member)
-                logging.info(f"{member.name} tried to select more than one answer. Abort.")
+                logging.info(
+                    f"{member.name} tried to select more than one answer. Abort.")
+        elif cid == self.admin_channel.id:
+            if payload.message_id in self.messages and \
+                    not self.messages[payload.message_id][0] and \
+                    payload.emoji in self.data_provider.topic_emojis:
+                self.messages[payload.message_id][0] = True
+                self.messages[payload.message_id][1] = self.data_provider.topic_emojis[payload.emoji]
+                logging.ingo(
+                    f"Got {payload.emoji} reaction when selecting topic.")
 
     # pathetic attempt to make canceling answer
     # async def on_reaction_remove(self, reaction, user):

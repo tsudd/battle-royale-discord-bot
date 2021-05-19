@@ -1,0 +1,170 @@
+[
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 1,
+    "fields": {
+      "variant": "Платформа для запуска контейнеров"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 3,
+    "fields": {
+      "variant": "Виртуальная машина для запуска web приложений и БД."
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 2,
+    "fields": {
+      "variant": "Синий кит."
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 4,
+    "fields": {
+      "variant": "Виртуальная машина для контейнеров"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 5,
+    "fields": {
+      "variant": "sudo docker print images"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 6,
+    "fields": {
+      "variant": "docker images"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 7,
+    "fields": {
+      "variant": "docker ps"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 8,
+    "fields": {
+      "variant": "docker pi"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 9,
+    "fields": {
+      "variant": "docker commit image"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 10,
+    "fields": {
+      "variant": "FROM image:latest"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 11,
+    "fields": {
+      "variant": "docker build image --in=parent_image"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 12,
+    "fields": {
+      "variant": "docker extend NAME"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 13,
+    "fields": {
+      "variant": "DOCKERFILE"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 14,
+    "fields": {
+      "variant": "docker log"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 15,
+    "fields": {
+      "variant": "image.docker"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 16,
+    "fields": {
+      "variant": "В движке докера"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 17,
+    "fields": {
+      "variant": "Запускает определенные команды внутри контейнера."
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 18,
+    "fields": {
+      "variant": "Открывает командую строку в контейнере."
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 19,
+    "fields": {
+      "variant": "Дублирует работу RUN."
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 20,
+    "fields": {
+      "variant": "Пробрасывает команды в docker engine."
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 21,
+    "fields": {
+      "variant": "docker build image_name"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 22,
+    "fields": {
+      "variant": "docker collect image"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 23,
+    "fields": {
+      "variant": "FROM docker_base BUILD"
+    }
+  },
+  {
+    "model": "arenastatistics.questionvariant",
+    "pk": 24,
+    "fields": {
+      "variant": "docker create image from old_image\""
+    }
+  }
+]

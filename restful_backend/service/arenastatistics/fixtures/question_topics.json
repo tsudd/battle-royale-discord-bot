@@ -1,0 +1,30 @@
+[
+  {
+    "model": "arenastatistics.questiontopic",
+    "pk": 1,
+    "fields": {
+      "name": "docker"
+    }
+  },
+  {
+    "model": "arenastatistics.questiontopic",
+    "pk": 2,
+    "fields": {
+      "name": "python"
+    }
+  },
+  {
+    "model": "arenastatistics.questiontopic",
+    "pk": 3,
+    "fields": {
+      "name": "git"
+    }
+  },
+  {
+    "model": "arenastatistics.questiontopic",
+    "pk": 4,
+    "fields": {
+      "name": "django"
+    }
+  }
+]

@@ -42,7 +42,7 @@ ARGS_FLAGS = {
     "-q": "QUESTIONS_AMOUNT",
 }
 
-TOPICS_ACCESSOR = "TOPICS"
+TOPIC_ACCESSOR = "TOPICS"
 ANSWER_TIME_ACCESSOR = "ANSWER_TIME"
 QUESTION_AMOUNT_ACCESSOR = "QUESTIONS_AMOUNT"
 
@@ -83,16 +83,16 @@ WINNERS_AMOUNT = 1
 
 RULES_MESSAGE = f"Hello everyone! If you read this, it means you are on the battle-royale Arena. " \
                 f"Yoo will have %d round(s). " \
-              f"Your task is survive as many rounds as you can. Every round consist of one question " \
-              f"with 4 variants of answer. Use EMOJI to select your answer. You will have %d seconds on every " \
-              f"question to select the answer, so after this time your answers will be recorded and processed. Pay " \
-              f"attention, because if you are wrong, you will be kicked out of the game. Try to become the king of " \
-              f"Arena or answer all questions. Good luck!!!\n\nLets meet our warriors:\n"
+    f"Your task is survive as many rounds as you can. Every round consist of one question " \
+    f"with 4 variants of answer. Use EMOJI to select your answer. You will have %d seconds on every " \
+    f"question to select the answer, so after this time your answers will be recorded and processed. Pay " \
+    f"attention, because if you are wrong, you will be kicked out of the game. Try to become the king of " \
+    f"Arena or answer all questions. Good luck!!!\n\nLets meet our warriors:\n"
 
 ARENA_INVITE = "Arena in <#%d> will start in %d seconds. React below to join!"
 WRONG_ARGUMENTS_START = "Unable to create new battle: wrong arguments"
 NO_ARGUMENTS = "Couldn't execute this command: no arguments. Watch info."
-TOPICS_SEQUENCE = " Inside topics: %s."
+TOPICS_SEQUENCE = " Insided topic: %s."
 
 TOPICS_SELECTION_MESSAGE = "To start arena choose one or more topics below.\n" \
                            "%s."
@@ -108,7 +108,8 @@ ROUND_RESULT_TOPIC = "Round result.\nStill in game %d:\n"
 POINTS_NAME = "points"
 BANNED_PLAYERS_INFO = "%d players was banned.\n"
 
-GAME_RESULT_TOPIC = DIVADER + "After %d rounds battle in %s ended.\n" + PRINT_HL + "Survivors and scores:\n"
+GAME_RESULT_TOPIC = DIVADER + "After %d rounds battle in %s ended.\n" + \
+    PRINT_HL + "Survivors and scores:\n"
 KICKED_PLAYERS_MESSAGE = PRINT_HL + "Who didn't make it...\n"
 
 GAME_TOPICS_INFO = "In this game you will meet %s topics. Forewarned is forearmed."
@@ -139,4 +140,3 @@ BATTLE_ROLE_TEMPLATE = "Arena %d warrior"
 
 # other
 CHANNEL_LINK_REGEX = r"<#([\d]+)>"
-
