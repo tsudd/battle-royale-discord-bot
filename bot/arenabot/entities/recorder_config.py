@@ -4,7 +4,7 @@ ID_ACCESSOR = "id"
 QUESTION_STRING_FIELD = 'question_string'
 QUESTION_ANSWERS_FIELDS = ["varOne", "varTwo", "varThree", "varFour"]
 QUESTION_RIGHT_ANSWER = "right_ind"
-QUESTION_DESCRIPTION = "description"
+QUESTION_VARIANT = "variant"
 
 # player model
 PLAYERS_MODELS_ACCESSOR = "players"

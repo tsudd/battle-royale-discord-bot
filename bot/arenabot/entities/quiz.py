@@ -1,3 +1,4 @@
+from ..dataprovider.back_config import NAME_ACCESSOR
 import logging
 import random
 import datetime
@@ -5,7 +6,6 @@ from .player import Player
 from .question import Question
 
 from ..config import *
-from .recorder_config import QUESTION_STRING_FIELD, QUESTION_ANSWERS_FIELD, ID_ACCESSOR
 
 
 class Quiz(object):
@@ -18,12 +18,15 @@ class Quiz(object):
         self.answer_time = time_to_ans
         self.rounds_amount = len(questions)
         self.question_message = None
+        self.questions = []
 
         for player in players:
             self.players[player.id] = Player(player.id, player.name)
 
         for question in questions:
             self.questions.append(Question(question))
+
+        random.shuffle(self.questions)
 
         self.question_stack = [*self.questions]
         self.state.player_counter = len(self.players)
@@ -44,7 +47,7 @@ class Quiz(object):
             else:
                 logging.info(
                     f"{self.players[playerid].name} got points after write answer!")
-                self.players[playerid].add_points(len(question.answer))
+                self.players[playerid].add_points()
         self.state.last_ban_amount = len(kill_uid_list)
         self.state.dead_counter += self.state.last_ban_amount
         self.state.player_counter -= self.state.last_ban_amount
@@ -64,7 +67,7 @@ class Quiz(object):
     def get_round_result(self):
         ans = ROUND_RESULT_TOPIC % self.state.player_counter
 
-        for uid, player in self.players.items():
+        for player in self.players.values():
             if not player.alive:
                 continue
             ans += f" - {player.name} - {player.score} {POINTS_NAME}. (+{self.state.added_score})\n"
@@ -78,14 +81,13 @@ class Quiz(object):
             return "Game still in progress."
 
         ans = GAME_RESULT_TOPIC % (
-            self.state.question_answered, BATTLE_CHANNEL_TEMPLATE % arena_num)
+            self.state.question_answered, BATTLE_CHANNEL_TEMPLATE % (arena_num + 1))
 
-        for uid, player in self.players.items():
+        for player in self.players.values():
             if not player.alive:
                 continue
             ans += f" - {player.name} - {player.score} {POINTS_NAME}.\n"
 
-        ans += PRINT_HL
         ans += KICKED_PLAYERS_MESSAGE
         date = datetime.datetime.now().strftime("%d.%m.%Y")
         for player in self.state.dead_players:
@@ -103,10 +105,7 @@ class Quiz(object):
         for uid, player in self.players.items():
             ans += f" - {player.name} - {player.score} {POINTS_NAME}.\n"
 
-        s = ""
-        for topic in self.topics:
-            s += f"{topic} "
-        ans += GAME_TOPICS_INFO % s
+        ans += GAME_TOPICS_INFO % self.topic[NAME_ACCESSOR]
 
         ans += CLICK_TO_START_MESSAGE
         logging.info(
@@ -129,7 +128,7 @@ class Quiz(object):
             self.state.game_in_progress = False
 
     def update_answer_statuses(self):
-        for uid, player in self.players.items():
+        for player in self.players.values():
             player.answered = False
 
 
@@ -145,3 +144,4 @@ class State(object):
         self.last_question = None
         self.last_ban_amount = 0
         self.dead_players = []
+        self.rounds = []

@@ -74,7 +74,12 @@ QUESTION_EMOJI_DICT = {
 PATH_TO_QUESTIONS_FILE = "questions.json"
 PATH_TO_STAT_FILE = "stat.json"
 
-VARIANTS = [ONE_EMOJI, TWO_EMOJI, THREE_EMOJI, FOUR_EMOJI]
+VARIANTS = {
+    ONE_EMOJI: 1,
+    TWO_EMOJI: 2,
+    THREE_EMOJI: 3,
+    FOUR_EMOJI: 4
+}
 
 # info outputs
 DIVADER = "#" * 50 + '\n'
@@ -116,6 +121,8 @@ GAME_TOPICS_INFO = "In this game you will meet %s topics. Forewarned is forearme
 CLICK_TO_START_MESSAGE = f"Please, vote {JOIN_EMOJI} below to start."
 
 ROUND_START_TOPIC = "Round %d.\nPlayers dead %d. Players alive %d.\n"
+
+PLAYER_ANSWERED = "%s answered!"
 
 SHOUTS = [
     "Poor thing! ",

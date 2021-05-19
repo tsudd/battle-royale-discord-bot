@@ -1,7 +1,7 @@
 import logging
 import random
 
-from .recorder_config import ID_ACCESSOR, QUESTION_RIGHT_ANSWER, QUESTION_STRING_FIELD, QUESTION_ANSWERS_FIELDS
+from .recorder_config import ID_ACCESSOR, QUESTION_RIGHT_ANSWER, QUESTION_STRING_FIELD, QUESTION_ANSWERS_FIELDS, QUESTION_VARIANT
 
 
 class Question(object):
@@ -12,9 +12,11 @@ class Question(object):
 
         answers = []
         for var in QUESTION_ANSWERS_FIELDS:
-            answers.append([question_fields[var], False])
+            answers.append([question_fields[var][QUESTION_VARIANT], False,
+                           question_fields[var][ID_ACCESSOR]])
 
-        answers[question_fields[self.answer - 1]][1] = True
+        logging.info(f"{answers}")
+        answers[question_fields[QUESTION_RIGHT_ANSWER] - 1][1] = True
         random.shuffle(answers)
 
         num = 1
@@ -26,6 +28,7 @@ class Question(object):
             num += 1
 
         self.answers_string = s
+        self.answers = answers
         # self.description = description
 
     def get_question_message(self):

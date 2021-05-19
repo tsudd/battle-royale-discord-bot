@@ -31,7 +31,7 @@ class DataProvider(object):
             topics[t['id']] = t
         return topics
 
-    def get_questions(topic, amount):
+    def get_questions(amount, topic):
         r = DataProvider.__make_get(
             BACKEND_BASE_URL + QUESTIONS_URL + f"?{TOPIC_QUERY}={topic}&{AMOUNT_QUERY}={amount}")
         if r is None:

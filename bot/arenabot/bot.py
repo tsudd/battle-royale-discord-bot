@@ -28,6 +28,7 @@ class EqualizerBot(commands.Bot):
         self.data_provider = DataProvider()
         self.messages = {}
         self.recorder = Recorder(PATH_TO_STAT_FILE, self.question_base)
+        self.answers = {}
         logging.info(self.intents.members)
         self.link_commands()
 
@@ -53,13 +54,14 @@ class EqualizerBot(commands.Bot):
                 try:
                     parsed_args = EqualizerBot.parse_arguments([*args])
                     parsed_args[TOPIC_ACCESSOR] = await self.get_topic_id(ctx)
+                    logging.info("got it")
                 except ValueError:
                     logging.info(WRONG_ARGUMENTS_START)
                     await self.send_admin(WRONG_ARGUMENTS_START)
                     return
-                except Exception as e:
-                    logging.info(e)
-                    return
+                # except Exception as e:
+                #     logging.info(e)
+                #     return
                 logging.info(f"Starting battle with arguments {parsed_args}")
                 role = await self.crate_arena_role(ctx.guild)
                 text_channel = await self.create_battle_channel(ctx.guild, role)
@@ -75,9 +77,9 @@ class EqualizerBot(commands.Bot):
                     text_channel.id,
                     ctx.me,
                     players,
-                    self.data_provider.get_questions(
-                        parsed_args[TOPIC_ACCESSOR], parsed_args[QUESTION_AMOUNT_ACCESSOR]),
-                    parsed_args[ANSWER_TIME_ACCESSOR],
+                    self.data_provider.topics[parsed_args[TOPIC_ACCESSOR]],
+                    DataProvider.get_questions(
+                        parsed_args[QUESTION_AMOUNT_ACCESSOR], parsed_args[TOPIC_ACCESSOR])
                 )
                 self.battles[new_battle.cid] = [new_battle, text_channel, role]
                 try:
@@ -97,7 +99,7 @@ class EqualizerBot(commands.Bot):
         async def clean_all(ctx):
             if ctx.channel.id == ADMIN_CHANNEL:
                 logging.info("Cleaning all info.")
-                for battle, attrs in self.battles.items():
+                for attrs in self.battles.values():
                     await attrs[1].delete()
                     await attrs[2].delete()
                     logging.info(f"{attrs[1]} was deleted.")
@@ -125,12 +127,12 @@ class EqualizerBot(commands.Bot):
         async def pong(ctx, *arg):
             await ctx.channel.send(f"Pong {[*arg]}")
 
-        @self.command(name=GET_PLAYER_INFO_COMMAND, pass_context=True)
-        async def get_player_info(ctx):
-            ans = ""
-            for user in ctx.message.mentions:
-                ans += self.recorder.get_player(user.id) + '\n'
-            await self.admin_channel.send(ans)
+        # @self.command(name=GET_PLAYER_INFO_COMMAND, pass_context=True)
+        # async def get_player_info(ctx):
+        #     ans = ""
+        #     for user in ctx.message.mentions:
+        #         ans += self.recorder.get_player(user.id) + '\n'
+        #     await self.admin_channel.send(ans)
 
     async def send_admin(self, message: str):
         await self.admin_channel.send(message)
@@ -143,9 +145,9 @@ class EqualizerBot(commands.Bot):
         message_string = TOPICS_SELECTION_MESSAGE % s
         mes = await ctx.reply(message_string, mention_author=True)
         logging.debug(f"Sent message to react {mes.id}")
+        self.messages[mes.id] = (False, None)
         for emo in self.data_provider.topic_emojis.keys():
             await mes.add_reaction(emo)
-        self.messages[mes.id] = (False, None)
         t0 = tm.time()
         while not self.messages[mes.id][0]:
             logging.info("Waiting for choosing the topic for new game.")
@@ -154,7 +156,7 @@ class EqualizerBot(commands.Bot):
             await asyncio.sleep(3)
         ans = self.messages[mes.id][1]
         del self.messages[mes.id]
-        logging.info(f"Got topics {self.data_provider.topic_emojis[ans]}")
+        logging.info(f"Got topic {self.data_provider.topics[ans]}")
         return ans
 
     @staticmethod
@@ -171,7 +173,8 @@ class EqualizerBot(commands.Bot):
 
     async def get_players(self, channel, topic, time=15):
         players = []
-        info = TOPICS_SEQUENCE % (self.data_provider.topic_emojis[topic])
+        info = TOPICS_SEQUENCE % (
+            self.data_provider.topics[topic][NAME_ACCESSOR])
         message = await self.broadcast_invite(channel, time, info)
         logging.info(f"Sent invite for {channel.name}.")
         await message.add_reaction(JOIN_EMOJI)
@@ -215,11 +218,11 @@ class EqualizerBot(commands.Bot):
             quiz.update_answer_statuses()
             quiz.question_message = await channel.send(quiz.get_start_new_round())
             await asyncio.sleep(HOLDING_BETWEEN_MESSAGES)
-            answers = await self.get_answers(quiz, channel, quiz.question_message)
+            await self.get_answers(quiz, channel, quiz.question_message)
             quiz.question_message = None
             await channel.send(END_OF_ANSWERING)
             wrong_players = quiz.check_answers_and_kill(
-                answers, quiz.state.last_question)
+                self.answers, quiz.state.last_question)
             players_to_ban = await self.get_members_with_id(wrong_players)
             logging.info(f"Players to kill {players_to_ban}")
             await self.kick_players(players_to_ban, self.battles[quiz.cid][2], channel)
@@ -232,23 +235,15 @@ class EqualizerBot(commands.Bot):
         quiz.state.game_ended = True
 
     async def get_answers(self, quiz, channel, mes):
-        answers = {}
-        for id, player in quiz.players.items():
+        self.answers = {}
+        for player in quiz.players.values():
             if not player.alive:
                 continue
-            answers[player.uid] = []
-        for var in VARIANTS:
+            self.answers[player.uid] = -1
+        for var in VARIANTS.keys():
             await mes.add_reaction(var)
         await asyncio.sleep(quiz.answer_time)
-        mes = await channel.fetch_message(mes.id)
-        reaction = 1
-        for react in mes.reactions:
-            async for user in react.users():
-                if user.id in answers:
-                    answers[user.id].append(reaction)
-            reaction += 1
-        logging.info(f"Got reactions from {channel.name} - {answers}")
-        return answers
+        logging.info(f"Got reactions from {channel.name} - {self.answers}")
 
     async def kick_players(self, players, role, channel):
         for p in players:
@@ -307,6 +302,7 @@ class EqualizerBot(commands.Bot):
             return
         cid = payload.channel_id
         if cid in self.battles and \
+                str(payload.emoji) in VARIANTS and \
                 self.battles[cid][0].state.game_in_progress and \
                 payload.user_id in self.battles[cid][0].players and \
                 self.battles[cid][0].question_message is not None and\
@@ -317,6 +313,8 @@ class EqualizerBot(commands.Bot):
             logging.info(f"{player.name} just reacted!")
             if not player.answered:
                 player.answered = True
+                self.answers[player.uid] = VARIANTS[str(payload.emoji)]
+                await self.battles[cid][1].send(PLAYER_ANSWERED % player.name)
                 logging.info(f"{member.name} is making decision!")
             else:
                 await quiz.question_message.remove_reaction(payload.emoji, member)
