@@ -1,0 +1,80 @@
+[
+  {
+    "model": "arenastatistics.question",
+    "pk": 1,
+    "fields": {
+      "question_string": "Что такое Docker?",
+      "varOne": 1,
+      "varTwo": 2,
+      "varThree": 3,
+      "varFour": 4,
+      "right_ind": "1",
+      "topic": 1
+    }
+  },
+  {
+    "model": "arenastatistics.question",
+    "pk": 2,
+    "fields": {
+      "question_string": "Как вывести список image'ей?",
+      "varOne": 5,
+      "varTwo": 6,
+      "varThree": 7,
+      "varFour": 8,
+      "right_ind": "2",
+      "topic": 1
+    }
+  },
+  {
+    "model": "arenastatistics.question",
+    "pk": 3,
+    "fields": {
+      "question_string": "Как наследоваться от image'a?",
+      "varOne": 9,
+      "varTwo": 10,
+      "varThree": 11,
+      "varFour": 12,
+      "right_ind": "2",
+      "topic": 1
+    }
+  },
+  {
+    "model": "arenastatistics.question",
+    "pk": 4,
+    "fields": {
+      "question_string": "Где описывается докер образ?",
+      "varOne": 13,
+      "varTwo": 14,
+      "varThree": 15,
+      "varFour": 16,
+      "right_ind": "1",
+      "topic": 1
+    }
+  },
+  {
+    "model": "arenastatistics.question",
+    "pk": 5,
+    "fields": {
+      "question_string": "Что делает CMD?",
+      "varOne": 17,
+      "varTwo": 18,
+      "varThree": 19,
+      "varFour": 20,
+      "right_ind": "1",
+      "topic": 1
+    }
+  },
+  {
+    "model": "arenastatistics.question",
+    "pk": 6,
+    "fields": {
+      "question_string": "Как собрать образ?",
+      "varOne": 21,
+      "varTwo": 22,
+      "varThree": 23,
+      "varFour": 24,
+      "right_ind": "1",
+      "topic": 1
+    }
+  }
+]

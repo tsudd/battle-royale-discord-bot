@@ -3,28 +3,32 @@
     "model": "arenastatistics.questiontopic",
     "pk": 1,
     "fields": {
-      "name": "docker"
+      "name": "docker",
+      "emoji": "\uD83D\uDC0B"
     }
   },
   {
     "model": "arenastatistics.questiontopic",
     "pk": 2,
     "fields": {
-      "name": "python"
+      "name": "python",
+      "emoji": "\uD83D\uDC0D"
     }
   },
   {
     "model": "arenastatistics.questiontopic",
     "pk": 3,
     "fields": {
-      "name": "git"
+      "name": "git",
+      "emoji": "\uD83D\uDCBE"
     }
   },
   {
     "model": "arenastatistics.questiontopic",
     "pk": 4,
     "fields": {
-      "name": "django"
+      "name": "django",
+      "emoji": "\uD83D\uDC18"
     }
   }
 ]

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from models import *
+from .models import *
 
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -21,21 +21,21 @@ class QuestionVariantSerializer(serializers.ModelSerializer):
 
 
 class QuestionSerializer(serializers.ModelSerializer):
-    variant_1 = QuestionVariantSerializer(read_only=True)
-    variant_2 = QuestionVariantSerializer(read_only=True)
-    variant_3 = QuestionVariantSerializer(read_only=True)
-    variant_4 = QuestionVariantSerializer(read_only=True)
-    topic = QuestionTopicSerializer(read_only=True)
+    varOne = QuestionVariantSerializer(read_only=True)
+    varTwo = QuestionVariantSerializer(read_only=True)
+    varThree = QuestionVariantSerializer(read_only=True)
+    varFour = QuestionVariantSerializer(read_only=True)
 
     class Meta:
         model = Question
         fields = [
+            'id',
             'question_string',
             'right_ind',
-            "variant_1",
-            "variant_2",
-            "variant_3",
-            "variant_4",
+            "varOne",
+            "varTwo",
+            "varThree",
+            "varFour",
             "topic"
         ]
 
