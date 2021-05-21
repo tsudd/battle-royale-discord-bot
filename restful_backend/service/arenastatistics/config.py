@@ -24,3 +24,9 @@ QUESTION_ID_ACCESSOR = "question"
 
 ANSWERS_ACCESSOR = "answers"
 ANSWER_STATUS_ACCESSOR = "right"
+
+
+# params
+TOPIC_QUERY = "topic"
+AMOUNT_QUERY = "amount"
+ID_QUERY = "id"

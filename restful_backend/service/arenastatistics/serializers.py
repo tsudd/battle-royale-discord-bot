@@ -66,7 +66,16 @@ class RoundSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 # why?
-# class ParticipationSerializer
+
+
+class ParticipationSerializer(serializers.ModelSerializer):
+    session = SessionSerializer(read_only=True)
+
+    class Meta:
+        model = Participation
+        fields = [
+            "session"
+        ]
 
 
 class AnswerSerializer(serializers.ModelSerializer):

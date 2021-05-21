@@ -27,16 +27,16 @@ class QuestionsList(generics.ListAPIView):
         params = dict(request.query_params)
         amount = 10
         questions = []
-        if 'amount' in params:
-            amount = int(params['amount'][0])
-        if 'topic' in params:
-            topic_id = int(params['topic'][0])
-            all_questoins = list(Question.objects.filter(topic__id=topic_id))
-            random.shuffle(all_questoins)
-            if len(all_questoins) >= amount:
-                questions = all_questoins[:amount]
+        if AMOUNT_QUERY in params:
+            amount = int(params[AMOUNT_QUERY][0])
+        if TOPIC_QUERY in params:
+            topic_id = int(params[TOPIC_QUERY][0])
+            all_questions = list(Question.objects.filter(topic__id=topic_id))
+            random.shuffle(all_questions)
+            if len(all_questions) >= amount:
+                questions = all_questions[:amount]
             else:
-                questions = all_questoins
+                questions = all_questions
             logging.info(
                 f"Sending questions list by params: amount - {amount}, topic - {topic_id}")
             return Response(
@@ -73,7 +73,6 @@ class SessionsList(generics.ListCreateAPIView):
                 PLAYERS_ACCESSOR in data
         except AssertionError:
             logging.error("Bad data in POST request.")
-            print("blya")
             return Response(status=status.HTTP_400_BAD_REQUEST)
         try:
             logging.info("Saving session.")
@@ -127,7 +126,6 @@ class SessionsList(generics.ListCreateAPIView):
                         right=ans[ANSWER_STATUS_ACCESSOR]
                     )
                     answer.save()
-
             logging.info("Saving participation")
             for p in players.values():
                 part = Participation(session=session, player=p[0])
@@ -136,3 +134,33 @@ class SessionsList(generics.ListCreateAPIView):
         except Exception as e:
             logging.info(f"Exception while saving data: {e}")
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class PlayerDetail(generics.ListAPIView):
+    serializer_class = PlayerSerializer
+    queryset = Player.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        params = dict(request.query_params)
+        if len(params) == 0:
+            return super().get(request, args, kwargs)
+        uid = None
+        # try:
+        if ID_QUERY in params:
+            uid = int(params[ID_QUERY][0])
+        else:
+            raise AssertionError
+        amount = 10
+        if AMOUNT_QUERY in params:
+            amount = int(params[params][0])
+        player = Player.objects.get(dis_id=uid)
+        parts = list(Participation.objects.filter(
+            player=player).order_by("session__date")[:amount].values("session_id"))
+        ids = [record["session_id"] for record in parts]
+        sessions = Session.objects.filter(pk__in=ids)
+        return Response({
+            "player": self.serializer_class(player, context=self.get_serializer_context()).data,
+            "sessions": SessionSerializer(sessions, many=True, context=self.get_serializer_context()).data
+        })
+        # except Exception:
+        #     return Response(status=status.HTTP_400_BAD_REQUEST)
