@@ -6,11 +6,17 @@ DEFAULT_EMPTY_STRING = "Empty"
 
 
 class Player(models.Model):
-    dis_id = models.IntegerField("User ID", default=228)
+    dis_id = models.BigIntegerField("User ID", default=228)
     nick = models.CharField("Nickname", max_length=90, default="NO NICK")
     lifetime = models.FloatField("Average lifetime", default=1)
     games_amount = models.IntegerField("Arenas played", default=0)
     wins = models.IntegerField("Won in total", default=0)
+
+    def update_lifetime(self, score, rounds, alive):
+        total = self.games_amount + 1
+        cycle = score / rounds if not alive else 1
+        self.lifetime = (self.lifetime * self.games_amount + cycle) / total
+        self.games_amount = total
 
     def __str__(self):
         return f"{self.nick} with {self.games_amount} games."
@@ -54,6 +60,7 @@ class Question(models.Model):
 
 class Session(models.Model):
     players_amount = models.IntegerField("Players amount",  default=0)
+    dead_amount = models.IntegerField("Dead amount", default=0)
     rounds_amount = models.IntegerField("Rounds played", default=1)
     date = models.DateTimeField("Arena ended", auto_now_add=True)
     topic = models.ForeignKey(
@@ -89,7 +96,7 @@ class Participation(models.Model):
         Player, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
-        return f"Participation record of {self.player} player."
+        return f"Participation record of {self.player}."
 
 
 class Answer(models.Model):
@@ -97,8 +104,6 @@ class Answer(models.Model):
         Session, on_delete=models.CASCADE, null=True, blank=True)
     round = models.ForeignKey(
         Round, on_delete=models.CASCADE, null=True, blank=True)
-    question = models.ForeignKey(
-        Question, on_delete=models.CASCADE, null=True, blank=True)
     player = models.ForeignKey(
         Player, on_delete=models.CASCADE, null=True, blank=True)
     answer = models.ForeignKey(
@@ -106,4 +111,4 @@ class Answer(models.Model):
     right = models.BooleanField("Answer is right", default=False)
 
     def __str__(self):
-        return f"{self.right} answer of {self.player} player."
+        return f"{self.right} answer of {self.player}."

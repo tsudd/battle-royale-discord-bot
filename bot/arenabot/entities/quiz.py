@@ -1,3 +1,4 @@
+from .recorder_config import *
 from ..dataprovider.back_config import NAME_ACCESSOR
 import logging
 import random
@@ -21,7 +22,8 @@ class Quiz(object):
         self.questions = []
 
         for player in players:
-            self.players[player.id] = Player(player.id, player.name)
+            self.players[player.id] = Player(
+                player.id, player.nick if player.nick else player.name)
 
         for question in questions:
             self.questions.append(Question(question))
@@ -102,7 +104,7 @@ class Quiz(object):
 
         ans = RULES_MESSAGE % (self.rounds_amount, self.answer_time)
 
-        for uid, player in self.players.items():
+        for player in self.players.values():
             ans += f" - {player.name} - {player.score} {POINTS_NAME}.\n"
 
         ans += GAME_TOPICS_INFO % self.topic[NAME_ACCESSOR]
@@ -130,6 +132,46 @@ class Quiz(object):
     def update_answer_statuses(self):
         for player in self.players.values():
             player.answered = False
+
+    def record_round(self, answers):
+        roundd = {}
+        # bad code
+        roundd[QUESTION_ID_ACCESSOR] = self.state.last_question.id
+        roundd[QUESTION_ANSWERS_FIELDS[0]
+               ] = self.state.last_question.answers[0][2]
+        roundd[QUESTION_ANSWERS_FIELDS[1]
+               ] = self.state.last_question.answers[1][2]
+        roundd[QUESTION_ANSWERS_FIELDS[2]
+               ] = self.state.last_question.answers[2][2]
+        roundd[QUESTION_ANSWERS_FIELDS[3]
+               ] = self.state.last_question.answers[3][2]
+        roundd[QUESTION_RIGHT_ANSWER] = self.state.last_question.answer
+        roundd[ANSWERS_ACCESSOR] = []
+        for uid, ans in answers.items():
+            # bad code
+            answer = {
+                UID_ACCESSOR: uid,
+                QUESTION_VARIANT: self.state.last_question.answers[ans - 1][2]
+            }
+            if self.state.last_question.answer == ans:
+                answer[ANSWER_STATUS_ACCESSOR] = True
+            else:
+                answer[ANSWER_STATUS_ACCESSOR] = False
+            roundd[ANSWERS_ACCESSOR].append(answer)
+        self.state.rounds.append(roundd)
+
+    def dump_game(self):
+        answer = {}
+        answer[PLAYERS_AMOUNT] = len(self.players)
+        answer[DEAD_AMOUNT] = self.state.dead_counter
+        answer[ROUNDS_AMOUNT] = self.state.question_answered
+        answer[TOPIC_FIELD] = self.topic[ID_ACCESSOR]
+        answer[DATETIME_FIELD] = datetime.datetime.now(
+        ).isoformat(sep='T')
+        answer[ROUNDS_ACCESSOR] = self.state.rounds
+        answer[PLAYERS_MODELS_ACCESSOR] = [player.dump()
+                                           for player in self.players.values()]  # wat
+        return answer
 
 
 class State(object):

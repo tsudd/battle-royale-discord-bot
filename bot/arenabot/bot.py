@@ -6,7 +6,6 @@ import re
 import time as tm
 
 import discord
-from discord import utils
 from discord.ext import commands
 
 from .config import *
@@ -27,7 +26,6 @@ class EqualizerBot(commands.Bot):
         self.question_base = DataProvider()
         self.data_provider = DataProvider()
         self.messages = {}
-        self.recorder = Recorder(PATH_TO_STAT_FILE, self.question_base)
         self.answers = {}
         logging.info(self.intents.members)
         self.link_commands()
@@ -59,9 +57,9 @@ class EqualizerBot(commands.Bot):
                     logging.info(WRONG_ARGUMENTS_START)
                     await self.send_admin(WRONG_ARGUMENTS_START)
                     return
-                # except Exception as e:
-                #     logging.info(e)
-                #     return
+                except Exception as e:
+                    logging.info(f"{e}. Ending start battle")
+                    return
                 logging.info(f"Starting battle with arguments {parsed_args}")
                 role = await self.crate_arena_role(ctx.guild)
                 text_channel = await self.create_battle_channel(ctx.guild, role)
@@ -84,10 +82,13 @@ class EqualizerBot(commands.Bot):
                 self.battles[new_battle.cid] = [new_battle, text_channel, role]
                 try:
                     await self.launch_game(new_battle)
+                    logging.info(f"Arena in {text_channel.name} has ended.")
                     # make all records, ok da?
-                    # if new_battle.state.game_ended:
-                    #     await self.record_results(new_battle)
-                    #     await self.save_data()
+                    if new_battle.state.game_ended:
+                        logging.info(
+                            f"Sending info about session in {text_channel.name} to the backend.")
+                        self.data_provider.send_session_info(
+                            new_battle.dump_game())
                 except Exception as e:
                     logging.info(
                         f"Game {new_battle.cid} stopped by exception {e}.")
@@ -227,6 +228,7 @@ class EqualizerBot(commands.Bot):
             logging.info(f"Players to kill {players_to_ban}")
             await self.kick_players(players_to_ban, self.battles[quiz.cid][2], channel)
             await channel.send(quiz.get_round_result())
+            quiz.record_round(self.answers)
             quiz.is_game_end()
             await asyncio.sleep(HOLDING_BETWEEN_MESSAGES)
         result = quiz.get_game_result()
