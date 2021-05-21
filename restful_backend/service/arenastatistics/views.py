@@ -152,7 +152,7 @@ class PlayerDetail(generics.ListAPIView):
             raise AssertionError
         amount = 10
         if AMOUNT_QUERY in params:
-            amount = int(params[params][0])
+            amount = int(params[AMOUNT_QUERY][0])
         player = Player.objects.get(dis_id=uid)
         parts = list(Participation.objects.filter(
             player=player).order_by("session__date")[:amount].values("session_id"))

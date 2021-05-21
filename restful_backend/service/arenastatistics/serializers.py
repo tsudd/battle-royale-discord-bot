@@ -42,10 +42,12 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class SessionSerializer(serializers.ModelSerializer):
     topic = QuestionTopicSerializer(read_only=True)
+    date = serializers.DateTimeField(format='%d.%m.%Y %H:%M')
 
     class Meta:
         model = Session
         fields = [
+            "id",
             "players_amount",
             "rounds_amount",
             "date",
