@@ -40,6 +40,15 @@ class DataProvider(object):
             raise ValueError("Couldn't get data from backend.")
         return r.json()
 
+    def get_player_sessions(self, uid, amount=10):
+        r = DataProvider._make_get(
+            BACKEND_BASE_URL + PLAYERS_URL +
+            f"?{ID_QUERY}={uid}&{AMOUNT_QUERY}={amount}"
+        )
+        if r is None:
+            raise ValueError("Couldn't get data from backend.")
+        return r.json()
+
     def send_session_info(self, data):
         r = DataProvider._make_post(
             BACKEND_BASE_URL + SESSIONS_URL, data=data)  # another one

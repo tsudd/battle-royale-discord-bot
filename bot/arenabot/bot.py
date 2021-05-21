@@ -1,4 +1,5 @@
 import asyncio
+from .entities.recorder_config import *
 import json
 import logging
 import random
@@ -12,7 +13,7 @@ from .config import *
 from .entities.quiz import Quiz
 from .entities.recorder import Recorder
 from .dataprovider.data_provider import DataProvider
-from .dataprovider.back_config import NAME_ACCESSOR, EMOJI_ACCESSOR
+from .dataprovider.back_config import *
 
 
 class EqualizerBot(commands.Bot):
@@ -128,12 +129,44 @@ class EqualizerBot(commands.Bot):
         async def pong(ctx, *arg):
             await ctx.channel.send(f"Pong {[*arg]}")
 
-        # @self.command(name=GET_PLAYER_INFO_COMMAND, pass_context=True)
-        # async def get_player_info(ctx):
-        #     ans = ""
-        #     for user in ctx.message.mentions:
-        #         ans += self.recorder.get_player(user.id) + '\n'
-        #     await self.admin_channel.send(ans)
+        @self.command(name=GET_PLAYER_INFO_COMMAND, pass_context=True)
+        async def get_player_info(ctx):
+            ans = ""
+            for user in ctx.message.mentions:
+                logging.info(f"Getting info about {user.name}")
+                try:
+                    data = self.data_provider.get_player_sessions(user.id)
+                except ValueError:
+                    logging.error(
+                        f"Couldn't get info about {user.name} from backed")
+                    ans += CANT_GET_INFO
+                    break
+                ans += self.form_player_data(data)
+            await ctx.reply(ans)
+
+    def form_player_data(self, data: dict):
+        player = data[PLAYER_ACCESSOR]
+        ans = PLAYER_INFO % (
+            player[UID_ACCESSOR],
+            player[GAMES_AMOUNT_ACCESSOR],
+            player[LIFETIME_ACCESSOR],
+            player[WINS_ACCESSOR]
+        )
+        if len(data[SESSIONS_ACCESSOR]) > 0:
+            ans += PLAYERS_SESSIONS_TITLE % len(data[SESSIONS_ACCESSOR])
+            num = 1
+            for s in data[SESSIONS_ACCESSOR]:
+                ans += SESSION_INFO_STRING % (
+                    num,
+                    s[DATETIME_ACCESSOR],
+                    s[ID_ACCESSOR],
+                    s[PLAYERS_AMOUNT],
+                    s[ROUNDS_AMOUNT],
+                    s[TOPIC_QUERY]['name'] + s[TOPIC_QUERY]["emoji"]
+                )
+                num += 1
+        ans += '-' * 50
+        return ans
 
     async def send_admin(self, message: str):
         await self.admin_channel.send(message)

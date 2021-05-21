@@ -17,7 +17,7 @@ CREATE_BATTLE_COMMAND = "mkarena"
 CLEAN_ALL_COMMAND = "clean"
 INFO_COMMAND = "info"
 DELETE_BATTLE_COMMAND = "rmarena"
-GET_PLAYER_INFO_COMMAND = "get"
+GET_PLAYER_INFO_COMMAND = "gets"
 
 COMMANDS = [
     f'!{INFO_COMMAND} - Info about all battle royale bots commands',
@@ -25,7 +25,8 @@ COMMANDS = [
     f' -t (time) - time for answering',
     '/questions - Shows info about existing questions in lib',
     f'!{DELETE_BATTLE_COMMAND} - Deleting existing arena and role.',
-    f'!{CLEAN_ALL_COMMAND} - Deleting ALL existing arenas and roles.'
+    f'!{CLEAN_ALL_COMMAND} - Deleting ALL existing arenas and roles.',
+    f"!{GET_PLAYER_INFO_COMMAND} - get info about player and his participation"
 ]
 
 ADMIN_CHANNEL = 833201507888267265
@@ -45,6 +46,8 @@ ARGS_FLAGS = {
 TOPIC_ACCESSOR = "TOPICS"
 ANSWER_TIME_ACCESSOR = "ANSWER_TIME"
 QUESTION_AMOUNT_ACCESSOR = "QUESTIONS_AMOUNT"
+
+SESSIONS_ACCESSOR = "sessions"
 
 # question processing
 QUESTION_TYPES = [
@@ -106,6 +109,7 @@ BATTLE_ABORTED = "Battle in %s was aborted: holding for too long."
 END_OF_ANSWERING = "Answers recorded!"
 PLAYERS_KICKED = "%s was kicked from %s."
 BATTLE_STOPPED_AND_WHY = "Battle in %s was stop by %s."
+CANT_GET_INFO = "Couldn't get info from data service."
 
 ARENA_DELETED = "Battle in %s was stopped and deleted."
 
@@ -144,6 +148,18 @@ SECONDS_TO_JOIN = 11
 # strings templates
 BATTLE_CHANNEL_TEMPLATE = "Arena #%d"
 BATTLE_ROLE_TEMPLATE = "Arena %d warrior"
+
+# information outputs
+
+PLAYER_INFO = """----Info about <@%d>----
+Arenas played - %d.
+Average lifetime - %d percent.
+Wins - %d.
+"""
+
+PLAYERS_SESSIONS_TITLE = "----Last %d arenas----\n"
+
+SESSION_INFO_STRING = "%d. Arena from %s\nID - %d\nPlayers amount - %d\nRounds amount - %d\nTopic - %s\n"
 
 # other
 CHANNEL_LINK_REGEX = r"<#([\d]+)>"
