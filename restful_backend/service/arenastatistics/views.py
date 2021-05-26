@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.response import Response
@@ -145,7 +146,6 @@ class PlayerDetail(generics.ListAPIView):
         if len(params) == 0:
             return super().get(request, args, kwargs)
         uid = None
-        # try:
         if ID_QUERY in params:
             uid = int(params[ID_QUERY][0])
         else:
@@ -162,5 +162,31 @@ class PlayerDetail(generics.ListAPIView):
             "player": self.serializer_class(player, context=self.get_serializer_context()).data,
             "sessions": SessionSerializer(sessions, many=True, context=self.get_serializer_context()).data
         })
-        # except Exception:
-        #     return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class SessionDetail(generics.RetrieveAPIView):
+    queryset = Session.objects.all()
+    serializer_class = SessionSerializer
+
+    def get(self, request, *args, **kwargs):
+        params = kwargs
+        try:
+            pk = params["pk"]
+            session = Session.objects.get(pk=pk)
+            round_objects = list(Round.objects.filter(session__id=pk))
+            rounds = []
+            for r in round_objects:
+                anses = AnswerSerializer(
+                    list(Answer.objects.filter(round__id=r.id)), many=True).data
+                rr = RoundSerializer(r).data
+                rr.update({
+                    "answers": anses
+                })
+                rounds.append(rr)
+
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {**self.serializer_class(
+                session, context=self.get_serializer_context()).data,
+                "rounds": rounds})

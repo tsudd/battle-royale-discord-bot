@@ -56,16 +56,14 @@ class SessionSerializer(serializers.ModelSerializer):
 
 
 class RoundSerializer(serializers.ModelSerializer):
-    session = SessionSerializer(read_only=True)
     question = QuestionSerializer(read_only=True)
-    variant_1 = QuestionVariantSerializer(read_only=True)
-    variant_2 = QuestionVariantSerializer(read_only=True)
-    variant_3 = QuestionVariantSerializer(read_only=True)
-    variant_4 = QuestionVariantSerializer(read_only=True)
 
     class Meta:
         model = Round
-        fields = "__all__"
+        fields = [
+            "session",
+            "question"
+        ]
 
 # why?
 
@@ -81,11 +79,15 @@ class ParticipationSerializer(serializers.ModelSerializer):
 
 
 class AnswerSerializer(serializers.ModelSerializer):
-    session = SessionSerializer(read_only=True)
-    round = RoundSerializer(read_only=True)
-    question = QuestionSerializer(read_only=True)
-    player = PlayerSerializer(read_only=True)
+    player = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field="dis_id"
+    )
 
     class Meta:
         model = Answer
-        fields = "__all__"
+        fields = [
+            "player",
+            "right",
+            "answer",
+        ]

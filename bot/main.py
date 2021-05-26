@@ -5,7 +5,9 @@ import discord
 
 from arenabot.info import TOKEN
 from arenabot.config import COMMAND_PREFIX
-from arenabot.bot import EqualizerBot
+from arenabot.bot import StudentArenaBot
+
+import json
 
 
 # Enable logging
@@ -15,11 +17,23 @@ logging.basicConfig(
 )
 
 
+def get_config():
+    try:
+        fs = open("./bot/config.json", "r")
+        c = json.load(fs)
+        fs.close()
+        logging.info("Successfully read default configuration for bot.")
+    except FileNotFoundError:
+        raise AssertionError("Couldn't find config file.")
+    return c
+
+
 def main():
     intents = discord.Intents.default()
     intents.members = True
     intents.reactions = True
-    bot = EqualizerBot(command_prefix=COMMAND_PREFIX, intents=intents)
+    conf = get_config()
+    bot = StudentArenaBot(conf, intents=intents)
     bot.run(TOKEN)
 
 

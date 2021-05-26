@@ -1,0 +1,17 @@
+{
+    "commandPrefix": "!",
+    "adminChannel": 833201507888267265,
+    "broadcastChannel": 835537204188545073,
+    "infoChannel": 835908933725978645,
+    "channelsCategory": 840303711544934407,
+    "selfBot": false,
+    "commands": [
+        {
+            "commandName": "help",
+            "commandKeyWord": "info",
+            "passContext": true,
+            "enable": true,
+            "description": "Provides info about deployed commands."
+        }
+    ]
+}
