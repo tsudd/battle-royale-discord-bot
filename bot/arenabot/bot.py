@@ -1,4 +1,6 @@
 import asyncio
+
+from discord.ext.commands.errors import DisabledCommand
 from .entities.recorder_config import *
 import json
 import logging
@@ -11,35 +13,39 @@ from discord.ext import commands
 
 from .config import *
 from .entities.quiz import Quiz
-from .entities.recorder import Recorder
 from .dataprovider.data_provider import DataProvider
 from .dataprovider.back_config import *
 
 
-class EqualizerBot(commands.Bot):
-    def __init__(self, command_prefix=COMMAND_PREFIX, self_bot=False, intents=None):
+class StudentArenaBot(commands.Bot):
+    def __init__(self, config: dict, intents=None):
         commands.Bot.__init__(
-            self, command_prefix=command_prefix, self_bot=self_bot, intents=intents)
+            self, command_prefix=config[COMMAND_PREFIX_ACCESSOR], self_bot=config[SELF_BOT_OPTION], intents=intents)
         self.battles = {}
-        self.broadcast_channel = None
-        self.admin_channel = None
-        self.info_channel = None
+        self.broadcast_channel = config[BROADCAST_CHANNEL_ACCESSOR]
+        self.admin_channel = config[ADMIN_CHANNEL_ACCESSOR]
+        self.info_channel = config[INFO_CHANNEL_ACCESSOR]
         self.question_base = DataProvider()
         self.data_provider = DataProvider()
         self.messages = {}
         self.answers = {}
         logging.info(self.intents.members)
-        self.link_commands()
+        self.__link_commands(config[COMMANDS_ACCESSOR])
 
     async def on_ready(self):
-        self.broadcast_channel = await self.fetch_channel(BROADCAST_CHANNEL)
-        self.admin_channel = await self.fetch_channel(ADMIN_CHANNEL)
-        self.info_channel = await self.fetch_channel(INFO_CHANNEL)
+        self.broadcast_channel = await self.fetch_channel(self.broadcast_channel)
+        self.admin_channel = await self.fetch_channel(self.admin_channel)
+        self.info_channel = await self.fetch_channel(self.info_channel)
         logging.info(f"Bot creation - succeed. Logged as {self.user}")
 
-    def link_commands(self):
+    def __link_commands(self, commands):
 
-        @self.command(name=INFO_COMMAND, pass_context=True)
+        @self.command(
+            name=commands[INFO_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+            pass_context=commands[INFO_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+            enabled=commands[INFO_COMMAND][COMMAND_ENABLE_ACCESSOR],
+            description=commands[INFO_COMMAND][COMMAND_DESCRIPTION]
+        )
         async def info(ctx):
             logging.info(f"Passed help command with context - {ctx}")
             ans = "Existing commands:\n"
@@ -47,11 +53,18 @@ class EqualizerBot(commands.Bot):
                 ans += st + '\n'
             await ctx.channel.send(ans)
 
-        @self.command(name=CREATE_BATTLE_COMMAND, pass_context=True)
+        # self.add_command(Command(info, name="info", pass_context=True))
+
+        @self.command(
+            name=commands[MAKEARENA_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+            pass_context=commands[MAKEARENA_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+            enabled=commands[MAKEARENA_COMMAND][COMMAND_ENABLE_ACCESSOR],
+            description=commands[MAKEARENA_COMMAND][COMMAND_DESCRIPTION]
+        )
         async def start_battle(ctx, *args):
             if ctx.channel.id == ADMIN_CHANNEL:
                 try:
-                    parsed_args = EqualizerBot.parse_arguments([*args])
+                    parsed_args = StudentArenaBot.parse_arguments([*args])
                     parsed_args[TOPIC_ACCESSOR] = await self.get_topic_id(ctx)
                     logging.info("got it")
                 except ValueError:
@@ -62,7 +75,7 @@ class EqualizerBot(commands.Bot):
                     logging.info(f"{e}. Ending start battle")
                     return
                 logging.info(f"Starting battle with arguments {parsed_args}")
-                role = await self.crate_arena_role(ctx.guild)
+                role = await self.create_arena_role(ctx.guild)
                 text_channel = await self.create_battle_channel(ctx.guild, role)
                 players = await self.get_players(text_channel, parsed_args[TOPIC_ACCESSOR], SECONDS_TO_JOIN)
                 if len(players) == 0:
@@ -97,7 +110,12 @@ class EqualizerBot(commands.Bot):
                         await self.admin_channel.send(BATTLE_STOPPED_AND_WHY % (text_channel.name, e))
                         self.battles[new_battle.cid][0].state.game_in_progress = False
 
-        @self.command(name=CLEAN_ALL_COMMAND, pass_context=True)
+        @self.command(
+            name=commands[CLEANALL_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+            pass_context=commands[CLEANALL_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+            enabled=commands[CLEANALL_COMMAND][COMMAND_ENABLE_ACCESSOR],
+            description=commands[CLEANALL_COMMAND][COMMAND_DESCRIPTION]
+        )
         async def clean_all(ctx):
             if ctx.channel.id == ADMIN_CHANNEL:
                 logging.info("Cleaning all info.")
@@ -109,7 +127,12 @@ class EqualizerBot(commands.Bot):
             else:
                 await ctx.reply("Nice try you dummy.")
 
-        @self.command(name=DELETE_BATTLE_COMMAND, pass_context=True)
+        @self.command(
+            name=commands[CLEANARENA_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+            pass_context=commands[CLEANARENA_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+            enabled=commands[CLEANARENA_COMMAND][COMMAND_ENABLE_ACCESSOR],
+            description=commands[CLEANARENA_COMMAND][COMMAND_DESCRIPTION]
+        )
         async def clean_arena(ctx, *args):
             if ctx.channel.id == ADMIN_CHANNEL:
                 arguments = [*args]
@@ -125,22 +148,32 @@ class EqualizerBot(commands.Bot):
             else:
                 await ctx.reply("Nice try you dummy.")
 
-        @self.command(name="ping", pass_context=True)
+        @self.command(
+            name=commands[PONG_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+            pass_context=commands[PONG_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+            enabled=commands[PONG_COMMAND][COMMAND_ENABLE_ACCESSOR],
+            description=commands[PONG_COMMAND][COMMAND_DESCRIPTION]
+        )
         async def pong(ctx, *arg):
             await ctx.channel.send(f"Pong {[*arg]}")
 
-        @self.command(name=GET_PLAYER_INFO_COMMAND, pass_context=True)
+        @self.command(
+            name=commands[GETPLAYERINFO_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+            pass_context=commands[GETPLAYERINFO_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+            enabled=commands[GETPLAYERINFO_COMMAND][COMMAND_ENABLE_ACCESSOR],
+            description=commands[GETPLAYERINFO_COMMAND][COMMAND_DESCRIPTION]
+        )
         async def get_player_info(ctx):
             ans = ""
             for user in ctx.message.mentions:
                 logging.info(f"Getting info about {user.name}")
-                try:
-                    data = self.data_provider.get_player_sessions(user.id)
-                except ValueError:
-                    logging.error(
-                        f"Couldn't get info about {user.name} from backed")
-                    ans += CANT_GET_INFO
-                    break
+                # try:
+                data = self.data_provider.get_player_sessions(user.id)
+                # except ValueError:
+                #     logging.error(
+                #         f"Couldn't get info about {user.name} from backed")
+                #     ans += CANT_GET_INFO
+                #     break
                 ans += self.form_player_data(data)
             await ctx.reply(ans)
 
@@ -149,7 +182,7 @@ class EqualizerBot(commands.Bot):
         ans = PLAYER_INFO % (
             player[UID_ACCESSOR],
             player[GAMES_AMOUNT_ACCESSOR],
-            player[LIFETIME_ACCESSOR],
+            round(player[LIFETIME_ACCESSOR], 4) * 100,
             player[WINS_ACCESSOR]
         )
         if len(data[SESSIONS_ACCESSOR]) > 0:
@@ -310,27 +343,12 @@ class EqualizerBot(commands.Bot):
         logging.info(f"Created channel {name} with {channel.id}.")
         return channel
 
-    async def crate_arena_role(self, guild):
+    async def create_arena_role(self, guild):
         role_name = BATTLE_ROLE_TEMPLATE % (len(self.battles) + 1)
         # add random color generation
         role = await guild.create_role(name=role_name)
         logging.info(f"{role_name} role was created. {role}")
         return role
-
-    async def record_results(self, quiz):
-        for p in quiz.players.values():
-            logging.info(f"Making record for {p.name}")
-            self.recorder.update_or_add_player(p, quiz)
-
-    @staticmethod
-    def load_questions():
-        fp = open(PATH_TO_QUESTIONS_FILE, "r")
-        ans = json.load(fp)
-        fp.close()
-        return ans
-
-    async def save_data(self):
-        await self.recorder.save_data()
 
     async def on_raw_reaction_add(self, payload):
         if payload.user_id == self.user.id:
@@ -364,6 +382,13 @@ class EqualizerBot(commands.Bot):
                 logging.info(
                     f"Got {payload.emoji} reaction when selecting topic.")
 
+    async def on_command_error(self, context, exception):
+        if isinstance(exception, DisabledCommand):
+            logging.info(
+                f"Tried to exec disabled command but got error: {exception}.")
+            await context.reply(COMMAND_ERROR % exception)
+            return
+        return await super().on_command_error(context, exception)
     # pathetic attempt to make canceling answer
     # async def on_reaction_remove(self, reaction, user):
     #     cid = reaction.message.channel.id

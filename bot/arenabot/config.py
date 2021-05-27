@@ -38,6 +38,29 @@ BOT_ID = 833194405594529803
 
 GUILD_TOKEN = '833201505346650132'
 
+# config structure
+COMMAND_PREFIX_ACCESSOR = "commandPrefix"
+ADMIN_CHANNEL_ACCESSOR = "adminChannel"
+BROADCAST_CHANNEL_ACCESSOR = "broadcastChannel"
+INFO_CHANNEL_ACCESSOR = "infoChannel"
+CHANNELS_CATEGORY_ACCESSOR = "channelsCategory"
+SELF_BOT_OPTION = "selfBot"
+
+COMMANDS_ACCESSOR = "commands"
+COMMAND_NAME_ACCESSOR = "commandName"
+COMMAND_KEYWORD_ACCESSOR = "commandKeyWord"
+COMMAND_ENABLE_ACCESSOR = "enabled"
+COMMAND_CONTEXT_ACCESSOR = "passContext"
+COMMAND_DESCRIPTION = "description"
+
+# commands accessors
+INFO_COMMAND = "info"
+MAKEARENA_COMMAND = "makeArena"
+CLEANALL_COMMAND = "cleanAll"
+CLEANARENA_COMMAND = "cleanArena"
+PONG_COMMAND = "pong"
+GETPLAYERINFO_COMMAND = "getPlayerInfo"
+
 ARGS_FLAGS = {
     "-t": "ANSWER_TIME",
     "-q": "QUESTIONS_AMOUNT",
@@ -50,32 +73,6 @@ QUESTION_AMOUNT_ACCESSOR = "QUESTIONS_AMOUNT"
 SESSIONS_ACCESSOR = "sessions"
 
 # question processing
-QUESTION_TYPES = [
-    "docker",
-    "python",
-    "git",
-    "django",
-    "flusk"
-]
-
-QUESTION_EMOJI = [
-    "🐋",
-    "🐍",
-    "💾",
-    "🤯",
-    "🐘"
-]
-
-QUESTION_EMOJI_DICT = {
-    "🐋": "docker",
-    "🐍": "python",
-    "💾": "git",
-    "🤯": "flusk",
-    "🐘": "django"
-}
-
-PATH_TO_QUESTIONS_FILE = "questions.json"
-PATH_TO_STAT_FILE = "stat.json"
 
 VARIANTS = {
     ONE_EMOJI: 1,
@@ -106,6 +103,7 @@ TOPICS_SELECTION_MESSAGE = "To start arena choose one or more topics below.\n" \
                            "%s."
 
 BATTLE_ABORTED = "Battle in %s was aborted: holding for too long."
+COMMAND_ERROR = "Couldn't exec the command: %s."
 END_OF_ANSWERING = "Answers recorded!"
 PLAYERS_KICKED = "%s was kicked from %s."
 BATTLE_STOPPED_AND_WHY = "Battle in %s was stop by %s."
@@ -133,7 +131,8 @@ SHOUTS = [
     "Damn son... ",
     "Mission failed. ",
     "Bruh... ",
-    "Bakayaro..."
+    "Bakayaro...",
+    "It was going so well..."
 ]
 
 # battle settings
@@ -153,7 +152,7 @@ BATTLE_ROLE_TEMPLATE = "Arena %d warrior"
 
 PLAYER_INFO = """----Info about <@%d>----
 Arenas played - %d.
-Average lifetime - %d percent.
+Average lifetime - %.2f percent.
 Wins - %d.
 """
 
