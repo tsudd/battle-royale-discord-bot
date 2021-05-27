@@ -132,4 +132,4 @@ dmypy.json
 
 
 # Discord
-bot/info.py
+bot/arenabot/info.py

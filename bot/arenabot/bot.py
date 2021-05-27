@@ -44,7 +44,8 @@ class StudentArenaBot(commands.Bot):
             name=commands[INFO_COMMAND][COMMAND_KEYWORD_ACCESSOR],
             pass_context=commands[INFO_COMMAND][COMMAND_CONTEXT_ACCESSOR],
             enabled=commands[INFO_COMMAND][COMMAND_ENABLE_ACCESSOR],
-            description=commands[INFO_COMMAND][COMMAND_DESCRIPTION]
+            description=commands[INFO_COMMAND][COMMAND_DESCRIPTION],
+            help=commands[INFO_COMMAND][COMMAND_HELP]
         )
         async def info(ctx):
             logging.info(f"Passed help command with context - {ctx}")
@@ -59,7 +60,8 @@ class StudentArenaBot(commands.Bot):
             name=commands[MAKEARENA_COMMAND][COMMAND_KEYWORD_ACCESSOR],
             pass_context=commands[MAKEARENA_COMMAND][COMMAND_CONTEXT_ACCESSOR],
             enabled=commands[MAKEARENA_COMMAND][COMMAND_ENABLE_ACCESSOR],
-            description=commands[MAKEARENA_COMMAND][COMMAND_DESCRIPTION]
+            description=commands[MAKEARENA_COMMAND][COMMAND_DESCRIPTION],
+            help=commands[MAKEARENA_COMMAND][COMMAND_HELP]
         )
         async def start_battle(ctx, *args):
             if ctx.channel.id == ADMIN_CHANNEL:
@@ -114,7 +116,8 @@ class StudentArenaBot(commands.Bot):
             name=commands[CLEANALL_COMMAND][COMMAND_KEYWORD_ACCESSOR],
             pass_context=commands[CLEANALL_COMMAND][COMMAND_CONTEXT_ACCESSOR],
             enabled=commands[CLEANALL_COMMAND][COMMAND_ENABLE_ACCESSOR],
-            description=commands[CLEANALL_COMMAND][COMMAND_DESCRIPTION]
+            description=commands[CLEANALL_COMMAND][COMMAND_DESCRIPTION],
+            help=commands[CLEANALL_COMMAND][COMMAND_HELP]
         )
         async def clean_all(ctx):
             if ctx.channel.id == ADMIN_CHANNEL:
@@ -131,7 +134,8 @@ class StudentArenaBot(commands.Bot):
             name=commands[CLEANARENA_COMMAND][COMMAND_KEYWORD_ACCESSOR],
             pass_context=commands[CLEANARENA_COMMAND][COMMAND_CONTEXT_ACCESSOR],
             enabled=commands[CLEANARENA_COMMAND][COMMAND_ENABLE_ACCESSOR],
-            description=commands[CLEANARENA_COMMAND][COMMAND_DESCRIPTION]
+            description=commands[CLEANARENA_COMMAND][COMMAND_DESCRIPTION],
+            help=commands[CLEANARENA_COMMAND][COMMAND_HELP]
         )
         async def clean_arena(ctx, *args):
             if ctx.channel.id == ADMIN_CHANNEL:
@@ -152,7 +156,8 @@ class StudentArenaBot(commands.Bot):
             name=commands[PONG_COMMAND][COMMAND_KEYWORD_ACCESSOR],
             pass_context=commands[PONG_COMMAND][COMMAND_CONTEXT_ACCESSOR],
             enabled=commands[PONG_COMMAND][COMMAND_ENABLE_ACCESSOR],
-            description=commands[PONG_COMMAND][COMMAND_DESCRIPTION]
+            description=commands[PONG_COMMAND][COMMAND_DESCRIPTION],
+            help=commands[PONG_COMMAND][COMMAND_HELP]
         )
         async def pong(ctx, *arg):
             await ctx.channel.send(f"Pong {[*arg]}")
@@ -161,20 +166,70 @@ class StudentArenaBot(commands.Bot):
             name=commands[GETPLAYERINFO_COMMAND][COMMAND_KEYWORD_ACCESSOR],
             pass_context=commands[GETPLAYERINFO_COMMAND][COMMAND_CONTEXT_ACCESSOR],
             enabled=commands[GETPLAYERINFO_COMMAND][COMMAND_ENABLE_ACCESSOR],
-            description=commands[GETPLAYERINFO_COMMAND][COMMAND_DESCRIPTION]
+            description=commands[GETPLAYERINFO_COMMAND][COMMAND_DESCRIPTION],
+            help=commands[GETPLAYERINFO_COMMAND][COMMAND_HELP]
         )
         async def get_player_info(ctx):
             ans = ""
             for user in ctx.message.mentions:
                 logging.info(f"Getting info about {user.name}")
-                # try:
-                data = self.data_provider.get_player_sessions(user.id)
-                # except ValueError:
-                #     logging.error(
-                #         f"Couldn't get info about {user.name} from backed")
-                #     ans += CANT_GET_INFO
-                #     break
-                ans += self.form_player_data(data)
+                try:
+                    data = self.data_provider.get_player_sessions(user.id)
+                    ans += self.form_player_data(data)
+                except ValueError:
+                    logging.error(
+                        f"Couldn't get info about {user.name} from backed")
+                except Exception as e:
+                    logging.error(e)
+                if len(ans) == 0:
+                    ans += CANT_GET_INFO % user.name
+            await ctx.reply(ans)
+
+        @self.command(
+            name=commands[LAUNCHEDARENAS_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+            pass_context=commands[LAUNCHEDARENAS_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+            enabled=commands[LAUNCHEDARENAS_COMMAND][COMMAND_ENABLE_ACCESSOR],
+            description=commands[LAUNCHEDARENAS_COMMAND][COMMAND_DESCRIPTION],
+            help=commands[LAUNCHEDARENAS_COMMAND][COMMAND_HELP]
+        )
+        async def ps_battles(ctx):
+            ans = ARENA_INFO_TOPIC
+            num = 1
+            if len(self.battles) > 0:
+                for b in self.battles:
+                    ans += ARENA_INFO_STRING % (
+                        num,
+                        b[1].name,
+                        ARENA_IN_PROGRESS_STRING if b[0].state.game_in_progress else ARENA_ENDED_STRING,
+                        b[0].state.dead_counter,
+                        b[0].state.player_counter
+                    )
+                    num += 1
+            else:
+                ans += "None."
+            await ctx.reply(ans)
+
+        @self.command(
+            name=commands[GETSESSIONINFO_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+            pass_context=commands[GETSESSIONINFO_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+            enabled=commands[GETSESSIONINFO_COMMAND][COMMAND_ENABLE_ACCESSOR],
+            description=commands[GETSESSIONINFO_COMMAND][COMMAND_DESCRIPTION],
+            help=commands[GETSESSIONINFO_COMMAND][COMMAND_HELP]
+        )
+        async def session_info(ctx, *args):
+            ans = ""
+            for i in args:
+                logging.info(f"Getting info about {i} session.")
+                try:
+                    data = self.data_provider.get_session_info(i)
+                    ans += self.form_session_data(data)
+                except ValueError:
+                    logging.error(
+                        f"Couldn't get info about {i} from backed")
+                # except Exception as e:
+                #     logging.error(e)
+                if len(ans) == 0:
+                    ans += CANT_GET_INFO % i
             await ctx.reply(ans)
 
     def form_player_data(self, data: dict):
@@ -199,6 +254,33 @@ class StudentArenaBot(commands.Bot):
                 )
                 num += 1
         ans += '-' * 50
+        return ans
+
+    def form_session_data(self, data: dict):
+        ans = SESSION_INFO_TITLE % (
+            data[ID_ACCESSOR],
+            data[DATETIME_ACCESSOR],
+            data[PLAYERS_AMOUNT],
+            data[ROUNDS_AMOUNT],
+            data[TOPIC_QUERY]['name'] + data[TOPIC_QUERY]["emoji"]
+        )
+        ans += SESSION_ROUNDS_TITLE
+        num = 1
+        for r in data[ROUNDS_ACCESSOR]:
+            ans += ROUND_INFO % (
+                num,
+                r[QUESTION_ID_ACCESSOR],
+            )
+            j = 1
+            for answer in r[ANSWERS_ACCESSOR]:
+                ans += ANSWER_INFO % (
+                    j,
+                    answer[PLAYER_ACCESSOR],
+                    answer[ANSWER_ACCESSOR],
+                    WRIGHT_ANSWER if answer[ANSWER_STATUS_ACCESSOR] else WRONG_ANSWER
+                )
+                j += 1
+            num += 1
         return ans
 
     async def send_admin(self, message: str):

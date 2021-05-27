@@ -56,7 +56,10 @@ class SessionSerializer(serializers.ModelSerializer):
 
 
 class RoundSerializer(serializers.ModelSerializer):
-    question = QuestionSerializer(read_only=True)
+    question = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field="question_string"
+    )
 
     class Meta:
         model = Round
@@ -82,6 +85,10 @@ class AnswerSerializer(serializers.ModelSerializer):
     player = serializers.SlugRelatedField(
         read_only=True,
         slug_field="dis_id"
+    )
+    answer = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field="variant"
     )
 
     class Meta:

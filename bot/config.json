@@ -48,11 +48,27 @@
         },
         "getPlayerInfo": {
             "commandName": "get player info",
-            "commandKeyWord": "gets",
+            "commandKeyWord": "getp",
             "passContext": true,
             "enabled": true,
             "description": "Returns player statistics and 10(or less) last played arenas.",
             "help": "Returns player statistics and 10(or less) last played arenas."
+        },
+        "ps": {
+            "commandName": "list launched arenas",
+            "commandKeyWord": "ps",
+            "passContext": true,
+            "enabled": true,
+            "description": "Returns list of launched arenas.",
+            "help": "List launched arenas"
+        },
+        "sessionInfo": {
+            "commandName": "session info",
+            "commandKeyWord": "gets",
+            "passContext": true,
+            "enabled": true,
+            "description": "Returns information about game session.",
+            "help": "Info about session."
         }
     }
 }

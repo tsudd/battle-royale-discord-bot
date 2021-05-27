@@ -26,7 +26,7 @@ class DataProvider(object):
     def _get_topics():
         r = DataProvider._make_get(BACKEND_BASE_URL + TOPICS_URL)
         if r is None:
-            raise ValueError("Couldn't get data from backend.")
+            raise HTTPError(HTTP_ERROR_MESSAGE)
         gotted_topics = r.json()
         topics = {}
         for t in gotted_topics:
@@ -37,7 +37,7 @@ class DataProvider(object):
         r = DataProvider._make_get(
             BACKEND_BASE_URL + QUESTIONS_URL + f"?{TOPIC_QUERY}={topic}&{AMOUNT_QUERY}={amount}")
         if r is None:
-            raise ValueError("Couldn't get data from backend.")
+            raise HTTPError(HTTP_ERROR_MESSAGE)
         return r.json()
 
     def get_player_sessions(self, uid, amount=10):
@@ -46,14 +46,27 @@ class DataProvider(object):
             f"?{ID_QUERY}={uid}&{AMOUNT_QUERY}={amount}"
         )
         if r is None:
-            raise ValueError("Couldn't get data from backend.")
+            raise HTTPError(HTTP_ERROR_MESSAGE)
+        if r.status_code == 204:
+            raise ValueError
+
+        return r.json()
+
+    def get_session_info(self, sid):
+        r = DataProvider._make_get(
+            BACKEND_BASE_URL + SESSIONS_URL + f"/{sid}"
+        )
+        if r is None:
+            raise HTTPError(HTTP_ERROR_MESSAGE)
+        if r.status_code == 204:
+            raise ValueError
         return r.json()
 
     def send_session_info(self, data):
         r = DataProvider._make_post(
             BACKEND_BASE_URL + SESSIONS_URL, data=data)  # another one
 
-    @staticmethod
+    @ staticmethod
     def _make_get(url, headers={}):
         try:
             response = requests.get(url, headers=headers)
@@ -65,7 +78,7 @@ class DataProvider(object):
         else:
             return response
 
-    @staticmethod
+    @ staticmethod
     def _make_post(url, headers={}, data={}):
         try:
             response = requests.post(url, headers=headers, json=data)

@@ -22,6 +22,8 @@ ALIVE_ACCESSOR = "alive"
 QUESTION_ID_ACCESSOR = "question"
 ANSWERS_ACCESSOR = "answers"
 ANSWER_STATUS_ACCESSOR = "right"
+QUESTION_STRING_ACCESSOR = "question_string"
+ANSWER_ACCESSOR = "answer"
 
 # dump fields
 DEAD_AMOUNT = "dead_amount"
@@ -30,28 +32,3 @@ DATETIME_FIELD = "date"
 TOPIC_FIELD = "topic"
 ROUNDS_AMOUNT = "rounds_amount"
 ROUNDS_ACCESSOR = "rounds"
-
-# defaults
-DEFAULT_USERNAME = "UNNAMED_USER"
-DEFAULT_ID = 0
-DEFAULT_LIVECYCLE = 0
-DEFAULT_GAMES_AMOUNT = 0
-DEFAULT_USUALLY_WRONG = {}
-DEFAULT_LAST_ARENA = None
-DEFAULT_WINS = 0
-DEFAULT_RIGHTS = 0
-
-DEFAULT_FILENAME = "stat.json"
-
-# stat outputs
-INFO_TEXT = f"""Info about <@%d>:
-Arenas played - %d.
-Average lifetime - %d percent.
-Last arena - %s.
-Right answers in total - %d.
-Wins - %d.
-"""
-
-WRONGS_TITLE = "The most bad questions(question - wrong answers amount):\n"
-NO_QUESTIONS = "Couldn't get question string: wrong key."
-NO_PLAYER = "No info about <@%d>."

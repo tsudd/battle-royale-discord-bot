@@ -21,3 +21,6 @@ GAMES_AMOUNT_ACCESSOR = "games_amount"
 WINS_ACCESSOR = "wins"
 
 DATETIME_ACCESSOR = "date"
+
+# messages
+HTTP_ERROR_MESSAGE = "Couldn't get data from backend."

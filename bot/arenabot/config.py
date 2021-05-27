@@ -52,6 +52,7 @@ COMMAND_KEYWORD_ACCESSOR = "commandKeyWord"
 COMMAND_ENABLE_ACCESSOR = "enabled"
 COMMAND_CONTEXT_ACCESSOR = "passContext"
 COMMAND_DESCRIPTION = "description"
+COMMAND_HELP = "help"
 
 # commands accessors
 INFO_COMMAND = "info"
@@ -60,6 +61,8 @@ CLEANALL_COMMAND = "cleanAll"
 CLEANARENA_COMMAND = "cleanArena"
 PONG_COMMAND = "pong"
 GETPLAYERINFO_COMMAND = "getPlayerInfo"
+LAUNCHEDARENAS_COMMAND = "ps"
+GETSESSIONINFO_COMMAND = "sessionInfo"
 
 ARGS_FLAGS = {
     "-t": "ANSWER_TIME",
@@ -107,13 +110,18 @@ COMMAND_ERROR = "Couldn't exec the command: %s."
 END_OF_ANSWERING = "Answers recorded!"
 PLAYERS_KICKED = "%s was kicked from %s."
 BATTLE_STOPPED_AND_WHY = "Battle in %s was stop by %s."
-CANT_GET_INFO = "Couldn't get info from data service."
+CANT_GET_INFO = "Couldn't get info about %s."
 
 ARENA_DELETED = "Battle in %s was stopped and deleted."
 
 ROUND_RESULT_TOPIC = "Round result.\nStill in game %d:\n"
 POINTS_NAME = "points"
 BANNED_PLAYERS_INFO = "%d players was banned.\n"
+
+ARENA_INFO_TOPIC = "Launched arenas list\n"
+ARENA_INFO_STRING = "%d. %s %s. Players kicked - %d. Players alive - %d.\n"
+ARENA_IN_PROGRESS_STRING = "in progress..🛐"
+ARENA_ENDED_STRING = "ended☯️"
 
 GAME_RESULT_TOPIC = DIVADER + "After %d rounds battle in %s ended.\n" + \
     PRINT_HL + "Survivors and scores:\n"
@@ -159,6 +167,12 @@ Wins - %d.
 PLAYERS_SESSIONS_TITLE = "----Last %d arenas----\n"
 
 SESSION_INFO_STRING = "%d. Arena from %s\nID - %d\nPlayers amount - %d\nRounds amount - %d\nTopic - %s\n"
+SESSION_INFO_TITLE = "Information about %d session\nArena from %s\nPlayers amount - %d\nRounds amount - %d\nTopic - %s\n"
+SESSION_ROUNDS_TITLE = f"----Session rounds----\n"
+ROUND_INFO = "----Round #%d----\nQuestion - %s.\nPlayers answers:\n"
+ANSWER_INFO = "%d. <@%d> answered %s, which is %s.\n"
+RIGHT_ANSWER = "right✅"
+WRONG_ANSWER = "wrong❌"
 
 # other
 CHANNEL_LINK_REGEX = r"<#([\d]+)>"
