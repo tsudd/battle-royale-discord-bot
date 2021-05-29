@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
-from os import stat
+import time
 import requests
 from requests.exceptions import HTTPError
 
@@ -13,18 +13,30 @@ class DataProvider(object):
     Class for providing data to the bot from backend. Uses requests to get and post data.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, back_url) -> None:
         logging.info("Creating date provider")
 
-        self.topics = DataProvider._get_topics()
         self.topic_emojis = {}
+        self.backend_base_url = back_url
+
+        t0 = time.time()
+        self.topics = None
+        while time.time() - t0 < BACKEND_CONNECTION_TIME:
+            try:
+                self.topics = self._get_topics()
+                break
+            except HTTPError:
+                logging.info(
+                    "Couldn't establish connection with backend. Trying again")
+            time.sleep(SLEEPING_TIME_CONNECTION)
+        if not self.topics:
+            raise HTTPError(HTTP_ERROR_MESSAGE)
 
         for t in self.topics.values():
             self.topic_emojis[t[EMOJI_ACCESSOR]] = t['id']
 
-    @staticmethod
-    def _get_topics():
-        r = DataProvider._make_get(BACKEND_BASE_URL + TOPICS_URL)
+    def _get_topics(self):
+        r = DataProvider._make_get(self.backend_base_url + TOPICS_URL)
         if r is None:
             raise HTTPError(HTTP_ERROR_MESSAGE)
         gotted_topics = r.json()
@@ -33,16 +45,16 @@ class DataProvider(object):
             topics[t['id']] = t
         return topics
 
-    def get_questions(amount, topic):
+    def get_questions(self, amount, topic):
         r = DataProvider._make_get(
-            BACKEND_BASE_URL + QUESTIONS_URL + f"?{TOPIC_QUERY}={topic}&{AMOUNT_QUERY}={amount}")
+            self.backend_base_url + QUESTIONS_URL + f"?{TOPIC_QUERY}={topic}&{AMOUNT_QUERY}={amount}")
         if r is None:
             raise HTTPError(HTTP_ERROR_MESSAGE)
         return r.json()
 
     def get_player_sessions(self, uid, amount=10):
         r = DataProvider._make_get(
-            BACKEND_BASE_URL + PLAYERS_URL +
+            self.backend_base_url + PLAYERS_URL +
             f"?{ID_QUERY}={uid}&{AMOUNT_QUERY}={amount}"
         )
         if r is None:
@@ -54,7 +66,7 @@ class DataProvider(object):
 
     def get_session_info(self, sid):
         r = DataProvider._make_get(
-            BACKEND_BASE_URL + SESSIONS_URL + f"/{sid}"
+            self.backend_base_url + SESSIONS_URL + f"/{sid}"
         )
         if r is None:
             raise HTTPError(HTTP_ERROR_MESSAGE)
@@ -64,7 +76,7 @@ class DataProvider(object):
 
     def send_session_info(self, data):
         r = DataProvider._make_post(
-            BACKEND_BASE_URL + SESSIONS_URL, data=data)  # another one
+            self.backend_base_url + SESSIONS_URL, data=data)  # another one
 
     @ staticmethod
     def _make_get(url, headers={}):

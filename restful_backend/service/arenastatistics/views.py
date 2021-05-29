@@ -12,7 +12,16 @@ from .config import *
 import random
 import logging
 
-# Create your views here.
+# import firebase_admin
+# from firebase_admin import firestore
+# from firebase_admin import credentials
+
+# # Create your views here.
+# # Use a service account
+# cred = credentials.Certificate(
+#     '/home/appuser/project/arenastatistics/farebase/sudent-arena-bot-firebase-adminsdk-ps8j6-7da2d15a35.json')
+# default = firebase_admin.initialize_app(cred, name="app")
+# db = firestore.client(default)
 
 
 class TopicsList(generics.ListAPIView):

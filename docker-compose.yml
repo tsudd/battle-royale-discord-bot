@@ -1,6 +1,5 @@
 version: "3"
 
-
 services:
   postgresql:
     image: postgres:latest
@@ -12,7 +11,6 @@ services:
       - 5434:5432
     volumes:
       - bot-db:/var/lib/postgresql/data
-
 
   backend:
     image: arenabot-api
@@ -30,7 +28,25 @@ services:
     depends_on:
       - postgresql
     command: /bin/bash -c "
+      export GOOGLE_APPLICATION_CREDENTIALS="/home/appuser/project/arenastatistics/farebase/sudent-arena-bot-firebase-adminsdk-ps8j6-7da2d15a35.json" &&
       python3 manage.py migrate &&
       python3 manage.py runserver 0.0.0.0:8000"
+
+  bot:
+    image: student-arena-bot
+    container_name: arena-bot
+    user: botuser
+    build: bot/
+    env_file:
+      - bot/.env
+      - restful_backend/.env
+      - postgresql/.env
+    ports:
+      - 1337:1337
+    volumes:
+      - ./botconfigs/:/home/botuser/project/bot/start_configs/
+    depends_on:
+      - postgresql
+      - backend
 volumes:
   bot-db:

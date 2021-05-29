@@ -132,4 +132,7 @@ dmypy.json
 
 
 # Discord
-bot/arenabot/info.py
+bot/arenabot/bot/info.py
+
+#firebase
+restful_backend/service/arenastatistics/farebase/

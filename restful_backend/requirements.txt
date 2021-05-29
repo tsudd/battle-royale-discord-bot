@@ -40,3 +40,6 @@ whitenoise==5.2.0
 django-storages==1.11.1
 
 django-extensions-shell==1.7.4.1
+
+# farebase
+firebase-admin

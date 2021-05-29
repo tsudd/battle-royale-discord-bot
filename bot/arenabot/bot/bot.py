@@ -2,7 +2,6 @@ import asyncio
 
 from discord.ext.commands.errors import DisabledCommand
 from .entities.recorder_config import *
-import json
 import logging
 import random
 import re
@@ -25,8 +24,7 @@ class StudentArenaBot(commands.Bot):
         self.broadcast_channel = config[BROADCAST_CHANNEL_ACCESSOR]
         self.admin_channel = config[ADMIN_CHANNEL_ACCESSOR]
         self.info_channel = config[INFO_CHANNEL_ACCESSOR]
-        self.question_base = DataProvider()
-        self.data_provider = DataProvider()
+        self.data_provider = DataProvider(config[BACKEND_BASE_URL_ACCESSOR])
         self.messages = {}
         self.answers = {}
         logging.info(self.intents.members)
@@ -39,20 +37,6 @@ class StudentArenaBot(commands.Bot):
         logging.info(f"Bot creation - succeed. Logged as {self.user}")
 
     def __link_commands(self, commands):
-
-        @self.command(
-            name=commands[INFO_COMMAND][COMMAND_KEYWORD_ACCESSOR],
-            pass_context=commands[INFO_COMMAND][COMMAND_CONTEXT_ACCESSOR],
-            enabled=commands[INFO_COMMAND][COMMAND_ENABLE_ACCESSOR],
-            description=commands[INFO_COMMAND][COMMAND_DESCRIPTION],
-            help=commands[INFO_COMMAND][COMMAND_HELP]
-        )
-        async def info(ctx):
-            logging.info(f"Passed help command with context - {ctx}")
-            ans = "Existing commands:\n"
-            for st in COMMANDS:
-                ans += st + '\n'
-            await ctx.channel.send(ans)
 
         # self.add_command(Command(info, name="info", pass_context=True))
 
@@ -92,7 +76,7 @@ class StudentArenaBot(commands.Bot):
                     ctx.me,
                     players,
                     self.data_provider.topics[parsed_args[TOPIC_ACCESSOR]],
-                    DataProvider.get_questions(
+                    self.data_provider.get_questions(
                         parsed_args[QUESTION_AMOUNT_ACCESSOR], parsed_args[TOPIC_ACCESSOR])
                 )
                 self.battles[new_battle.cid] = [new_battle, text_channel, role]
@@ -277,7 +261,7 @@ class StudentArenaBot(commands.Bot):
                     j,
                     answer[PLAYER_ACCESSOR],
                     answer[ANSWER_ACCESSOR],
-                    WRIGHT_ANSWER if answer[ANSWER_STATUS_ACCESSOR] else WRONG_ANSWER
+                    RIGHT_ANSWER if answer[ANSWER_STATUS_ACCESSOR] else WRONG_ANSWER
                 )
                 j += 1
             num += 1
