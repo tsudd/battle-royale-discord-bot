@@ -28,8 +28,6 @@ class Quiz(object):
         for question in questions:
             self.questions.append(Question(question))
 
-        random.shuffle(self.questions)
-
         self.question_stack = [*self.questions]
         self.state.player_counter = len(self.players)
         self.state.question_amount = len(self.questions)
@@ -137,15 +135,6 @@ class Quiz(object):
         roundd = {}
         # bad code
         roundd[QUESTION_ID_ACCESSOR] = self.state.last_question.id
-        roundd[QUESTION_ANSWERS_FIELDS[0]
-               ] = self.state.last_question.answers[0][2]
-        roundd[QUESTION_ANSWERS_FIELDS[1]
-               ] = self.state.last_question.answers[1][2]
-        roundd[QUESTION_ANSWERS_FIELDS[2]
-               ] = self.state.last_question.answers[2][2]
-        roundd[QUESTION_ANSWERS_FIELDS[3]
-               ] = self.state.last_question.answers[3][2]
-        roundd[QUESTION_RIGHT_ANSWER] = self.state.last_question.answer
         roundd[ANSWERS_ACCESSOR] = []
         for uid, ans in answers.items():
             # bad code
@@ -167,7 +156,7 @@ class Quiz(object):
         answer[ROUNDS_AMOUNT] = self.state.question_answered
         answer[TOPIC_FIELD] = self.topic[ID_ACCESSOR]
         answer[DATETIME_FIELD] = datetime.datetime.now(
-        ).isoformat(sep='T')
+        ).strftime(DATETIME_TEMPLATE)
         answer[ROUNDS_ACCESSOR] = self.state.rounds
         answer[PLAYERS_MODELS_ACCESSOR] = [player.dump()
                                            for player in self.players.values()]  # wat

@@ -25,6 +25,7 @@ services:
     volumes:
       - ./restful_backend/service/arenastatistics/:/home/appuser/project/arenastatistics
       - ./restful_backend/service/service/:/home/appuser/project/service/
+      - ./restful_backend/service/firestore:/home/appuser/project/firestore/
     depends_on:
       - postgresql
     command: /bin/bash -c "

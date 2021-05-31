@@ -24,7 +24,7 @@ class Player(object):
     @staticmethod
     def from_dict(data):
         return Player(
-            dis_id=data[UID_ACCESSOR],
+            dis_id=data[DISID_ACCESSOR],
             nick=data[NAME_ACCESSOR],
             lifetime=data[LIFETIME_ACCESSOR],
             games_amount=data[GAMES_AMOUNT_ACCESSOR],
@@ -33,7 +33,7 @@ class Player(object):
 
     def to_dict(self):
         return {
-            UID_ACCESSOR: self.dis_id,
+            DISID_ACCESSOR: self.dis_id,
             NAME_ACCESSOR: self.nick,
             LIFETIME_ACCESSOR: self.lifetime,
             GAMES_AMOUNT_ACCESSOR: self.games_amount,

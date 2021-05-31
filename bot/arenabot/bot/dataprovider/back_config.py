@@ -15,7 +15,7 @@ AMOUNT_QUERY = "amount"
 ID_QUERY = "id"
 
 # accessors
-UID_ACCESSOR = "dis_id"
+DISID_ACCESSOR = "dis_id"
 NICK_ACCESSOR = "nick"
 PLAYER_ACCESSOR = "player"
 LIFETIME_ACCESSOR = "lifetime"

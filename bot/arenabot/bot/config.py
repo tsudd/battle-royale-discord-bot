@@ -140,8 +140,11 @@ SECONDS_TO_JOIN = 11
 # strings templates
 BATTLE_CHANNEL_TEMPLATE = "Arena #%d"
 BATTLE_ROLE_TEMPLATE = "Arena %d warrior"
+DATETIME_TEMPLATE = '%d.%m.%Y %H:%M:%S'
 
 # information outputs
+
+NO_INFO = "Nothing to output"
 
 PLAYER_INFO = """----Info about <@%d>----
 Arenas played - %d.
@@ -151,8 +154,8 @@ Wins - %d.
 
 PLAYERS_SESSIONS_TITLE = "----Last %d arenas----\n"
 
-SESSION_INFO_STRING = "%d. Arena from %s\nID - %d\nPlayers amount - %d\nRounds amount - %d\nTopic - %s\n"
-SESSION_INFO_TITLE = "Information about %d session\nArena from %s\nPlayers amount - %d\nRounds amount - %d\nTopic - %s\n"
+SESSION_INFO_STRING = "%d. Arena from %s\nID - %s\nPlayers amount - %d\nRounds amount - %d\nTopic - %s\n"
+SESSION_INFO_TITLE = "Information about %s session\nArena from %s\nPlayers amount - %d\nRounds amount - %d\nTopic - %s\n"
 SESSION_ROUNDS_TITLE = f"----Session rounds----\n"
 ROUND_INFO = "----Round #%d----\nQuestion - %s.\nPlayers answers:\n"
 ANSWER_INFO = "%d. <@%d> answered %s, which is %s.\n"

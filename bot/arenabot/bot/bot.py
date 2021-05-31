@@ -163,11 +163,10 @@ class StudentArenaBot(commands.Bot):
                 except ValueError:
                     logging.error(
                         f"Couldn't get info about {user.name} from backed")
+                    ans += CANT_GET_INFO % user.name
                 except Exception as e:
                     logging.error(e)
-                if len(ans) == 0:
-                    ans += CANT_GET_INFO % user.name
-            await ctx.reply(ans)
+            await ctx.reply(ans if len(ans) > 0 else NO_INFO)
 
         @self.command(
             name=commands[LAUNCHEDARENAS_COMMAND][COMMAND_KEYWORD_ACCESSOR],
@@ -219,7 +218,7 @@ class StudentArenaBot(commands.Bot):
     def form_player_data(self, data: dict):
         player = data[PLAYER_ACCESSOR]
         ans = PLAYER_INFO % (
-            player[UID_ACCESSOR],
+            player[ID_ACCESSOR],
             player[GAMES_AMOUNT_ACCESSOR],
             round(player[LIFETIME_ACCESSOR], 4) * 100,
             player[WINS_ACCESSOR]
@@ -234,7 +233,7 @@ class StudentArenaBot(commands.Bot):
                     s[ID_ACCESSOR],
                     s[PLAYERS_AMOUNT],
                     s[ROUNDS_AMOUNT],
-                    s[TOPIC_QUERY]['name'] + s[TOPIC_QUERY]["emoji"]
+                    self.data_provider.get_topic_str(s[TOPIC_QUERY])
                 )
                 num += 1
         ans += '-' * 50
@@ -246,7 +245,7 @@ class StudentArenaBot(commands.Bot):
             data[DATETIME_ACCESSOR],
             data[PLAYERS_AMOUNT],
             data[ROUNDS_AMOUNT],
-            data[TOPIC_QUERY]['name'] + data[TOPIC_QUERY]["emoji"]
+            self.data_provider.get_topic_str(data[TOPIC_QUERY])
         )
         ans += SESSION_ROUNDS_TITLE
         num = 1

@@ -43,19 +43,8 @@ def sessions_api(request):
             session = get_session(params[ID_QUERY][0])
             if session is None:
                 return Response(status=status.HTTP_204_NO_CONTENT)
-            print(session)
             return Response(session)
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-@api_view(["GET"])
-def session_info(request, pk):
-    if request.method == "GET":
-        session = get_session(pk)
-        if session is None:
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        print(session)
-        return Response(session)
 
 
 @api_view(["GET"])
@@ -86,7 +75,7 @@ def player_info(request, pk):
         params = dict(request.query_params)
         amount = 10
         if AMOUNT_QUERY in params:
-            amount = int(params[AMOUNT_QUERY])
+            amount = int(params[AMOUNT_QUERY][0])
         sessions = get_player_sessions(pk, amount)
         return Response({
             PLAYER_ACCESSOR: p,

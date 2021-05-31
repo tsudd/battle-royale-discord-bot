@@ -1,7 +1,7 @@
 import logging
 import random
 
-from .recorder_config import ID_ACCESSOR, QUESTION_RIGHT_ANSWER, QUESTION_STRING_FIELD, QUESTION_ANSWERS_FIELDS, QUESTION_VARIANT
+from .recorder_config import ID_ACCESSOR, QUESTION_RIGHT_ANSWER, QUESTION_STRING_FIELD, QUESTION_ANSWERS_FIELDS, QUESTION_VARIANT, QUESTION_VARIANTS
 
 
 class Question(object):
@@ -11,9 +11,9 @@ class Question(object):
         self.answer = question_fields[QUESTION_RIGHT_ANSWER]
 
         answers = []
-        for var in QUESTION_ANSWERS_FIELDS:
-            answers.append([question_fields[var][QUESTION_VARIANT], False,
-                           question_fields[var][ID_ACCESSOR]])
+        for var in question_fields[QUESTION_VARIANTS]:
+            answers.append([var[QUESTION_VARIANT], False,
+                           var[ID_ACCESSOR]])
 
         logging.info(f"{answers}")
         answers[question_fields[QUESTION_RIGHT_ANSWER] - 1][1] = True

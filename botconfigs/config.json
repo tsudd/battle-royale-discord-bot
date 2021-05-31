@@ -4,14 +4,14 @@
     "broadcastChannel": 835537204188545073,
     "infoChannel": 835908933725978645,
     "channelsCategory": 840303711544934407,
-    "backendBaseUrl": "http://172.19.0.3:8000/api/",
+    "backendBaseUrl": "http://172.19.0.3:8000/firestore/",
     "selfBot": false,
     "commands": {
         "makeArena": {
             "commandName": "make arena",
             "commandKeyWord": "mkarena",
             "passContext": true,
-            "enabled": false,
+            "enabled": true,
             "description": "Creates an arena and processing game in it.",
             "help": "Creates an arena and processing game in it."
         },

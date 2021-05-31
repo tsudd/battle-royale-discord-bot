@@ -55,7 +55,7 @@ class DataProvider(object):
     def get_player_sessions(self, uid, amount=10):
         r = DataProvider._make_get(
             self.backend_base_url + PLAYERS_URL +
-            f"?{ID_QUERY}={uid}&{AMOUNT_QUERY}={amount}"
+            f"/{uid}" + f"?{AMOUNT_QUERY}={amount}"
         )
         if r is None:
             raise HTTPError(HTTP_ERROR_MESSAGE)
@@ -66,7 +66,7 @@ class DataProvider(object):
 
     def get_session_info(self, sid):
         r = DataProvider._make_get(
-            self.backend_base_url + SESSIONS_URL + f"/{sid}"
+            self.backend_base_url + SESSIONS_URL + f"?{ID_QUERY}={sid}"
         )
         if r is None:
             raise HTTPError(HTTP_ERROR_MESSAGE)
@@ -101,3 +101,6 @@ class DataProvider(object):
             logging.info(f"Error {err} occured in request to {url}.")
         else:
             return response
+
+    def get_topic_str(self, tid):
+        return self.topics[tid][NAME_ACCESSOR] + self.topics[tid][EMOJI_ACCESSOR]

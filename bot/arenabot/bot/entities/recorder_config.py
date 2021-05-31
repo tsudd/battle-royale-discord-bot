@@ -6,6 +6,7 @@ QUESTION_STRING_FIELD = 'question_string'
 QUESTION_ANSWERS_FIELDS = ["varOne", "varTwo", "varThree", "varFour"]
 QUESTION_RIGHT_ANSWER = "right_ind"
 QUESTION_VARIANT = "variant"
+QUESTION_VARIANTS = "variants"
 
 # player model
 PLAYERS_MODELS_ACCESSOR = "players"

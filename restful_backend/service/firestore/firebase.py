@@ -120,12 +120,17 @@ def get_player_sessions(uid, amount=10):
         PLAYER_ACCESSOR, u"==", _get_player_ref(uid))
 
     ans = []
-    c = amount
+    c = 0
     for d in parts.stream():
-        ans.append(d.to_dict()[SESSION_ACCESSOR].get().to_dict())
-        c -= 1
-        if c == 0:
+        if c == amount:
             break
+        ses = d.to_dict()[SESSION_ACCESSOR].get()
+        ser_session = ses.to_dict()
+        if ses is None:
+            break
+        ans.append(ser_session)
+        ans[-1][ID_ACCESSOR] = ses.id
+        c += 1
     return ans
 
 
@@ -165,7 +170,9 @@ def get_session(sid):
     s = s_ref.get()
     if s.exists:
         ans = s.to_dict()
+        ans[ID_ACCESSOR] = s.id
         ans[ROUNDS_ACCESSOR] = _get_rounds(s_ref)
+
         return ans
 
 
@@ -192,7 +199,7 @@ def _get_answers(r_ref, variants):
         ans.append({
             PLAYER_ACCESSOR: ser_a[UID_ACCESSOR],
             ANSWER_STATUS_ACCESSOR: ser_a[ANSWER_STATUS_ACCESSOR],
-            ANSWER_ACCESSOR: variants[ser_a[QUESTION_VARIANT] -
+            ANSWER_ACCESSOR: variants[int(ser_a[QUESTION_VARIANT]) -
                                       1].get(QUESTION_VARIANT)
         })
     return ans
