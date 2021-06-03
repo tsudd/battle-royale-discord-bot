@@ -40,7 +40,7 @@ def main():
     intents.reactions = True
     conf = get_config()
     bot = StudentArenaBot(conf, intents=intents)
-    bot.run(TOKEN)
+    bot.run(conf["botToken"] if "botToken" in conf else TOKEN)
 
 
 if __name__ == '__main__':

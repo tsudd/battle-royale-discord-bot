@@ -1,4 +1,5 @@
 import asyncio
+from discord import colour
 
 from discord.ext.commands.errors import DisabledCommand
 from .entities.recorder_config import *
@@ -27,6 +28,7 @@ class StudentArenaBot(commands.Bot):
         self.data_provider = DataProvider(config[BACKEND_BASE_URL_ACCESSOR])
         self.messages = {}
         self.answers = {}
+        self.setting = Settings(config)
         logging.info(self.intents.members)
         self.__link_commands(config[COMMANDS_ACCESSOR])
 
@@ -39,181 +41,205 @@ class StudentArenaBot(commands.Bot):
     def __link_commands(self, commands):
 
         # self.add_command(Command(info, name="info", pass_context=True))
-
-        @self.command(
-            name=commands[MAKEARENA_COMMAND][COMMAND_KEYWORD_ACCESSOR],
-            pass_context=commands[MAKEARENA_COMMAND][COMMAND_CONTEXT_ACCESSOR],
-            enabled=commands[MAKEARENA_COMMAND][COMMAND_ENABLE_ACCESSOR],
-            description=commands[MAKEARENA_COMMAND][COMMAND_DESCRIPTION],
-            help=commands[MAKEARENA_COMMAND][COMMAND_HELP]
-        )
-        async def start_battle(ctx, *args):
-            if ctx.channel.id == ADMIN_CHANNEL:
-                try:
-                    parsed_args = StudentArenaBot.parse_arguments([*args])
-                    parsed_args[TOPIC_ACCESSOR] = await self.get_topic_id(ctx)
-                    logging.info("got it")
-                except ValueError:
-                    logging.info(WRONG_ARGUMENTS_START)
-                    await self.send_admin(WRONG_ARGUMENTS_START)
-                    return
-                except Exception as e:
-                    logging.info(f"{e}. Ending start battle")
-                    return
-                logging.info(f"Starting battle with arguments {parsed_args}")
-                role = await self.create_arena_role(ctx.guild)
-                text_channel = await self.create_battle_channel(ctx.guild, role)
-                players = await self.get_players(text_channel, parsed_args[TOPIC_ACCESSOR], SECONDS_TO_JOIN)
-                if len(players) == 0:
-                    # not enough players
-                    s = f"Stopped battle in {text_channel.name}. No players."
-                    logging.info(s)
-                    await self.send_admin(s)
-                    return
-                await self.give_role(players, role)
-                new_battle = Quiz(
-                    text_channel.id,
-                    ctx.me,
-                    players,
-                    self.data_provider.topics[parsed_args[TOPIC_ACCESSOR]],
-                    self.data_provider.get_questions(
-                        parsed_args[QUESTION_AMOUNT_ACCESSOR], parsed_args[TOPIC_ACCESSOR])
-                )
-                self.battles[new_battle.cid] = [new_battle, text_channel, role]
-                try:
-                    await self.launch_game(new_battle)
-                    logging.info(f"Arena in {text_channel.name} has ended.")
-                    # make all records, ok da?
-                    if new_battle.state.game_ended:
-                        logging.info(
-                            f"Sending info about session in {text_channel.name} to the backend.")
-                        self.data_provider.send_session_info(
-                            new_battle.dump_game())
-                except Exception as e:
+        try:
+            @self.command(
+                name=commands[MAKEARENA_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+                pass_context=commands[MAKEARENA_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+                enabled=commands[MAKEARENA_COMMAND][COMMAND_ENABLE_ACCESSOR],
+                description=commands[MAKEARENA_COMMAND][COMMAND_DESCRIPTION],
+                help=commands[MAKEARENA_COMMAND][COMMAND_HELP]
+            )
+            async def start_battle(ctx, *args):
+                if ctx.channel.id == ADMIN_CHANNEL:
+                    try:
+                        parsed_args = StudentArenaBot.parse_arguments([*args])
+                        parsed_args[TOPIC_ACCESSOR] = await self.get_topic_id(ctx)
+                        logging.info("got it")
+                    except ValueError:
+                        logging.info(WRONG_ARGUMENTS_START)
+                        await self.send_admin(WRONG_ARGUMENTS_START)
+                        return
+                    except Exception as e:
+                        logging.info(f"{e}. Ending start battle")
+                        return
                     logging.info(
-                        f"Game {new_battle.cid} stopped by exception {e}.")
-                    if new_battle.cid in self.battles:
-                        await self.admin_channel.send(BATTLE_STOPPED_AND_WHY % (text_channel.name, e))
-                        self.battles[new_battle.cid][0].state.game_in_progress = False
-
-        @self.command(
-            name=commands[CLEANALL_COMMAND][COMMAND_KEYWORD_ACCESSOR],
-            pass_context=commands[CLEANALL_COMMAND][COMMAND_CONTEXT_ACCESSOR],
-            enabled=commands[CLEANALL_COMMAND][COMMAND_ENABLE_ACCESSOR],
-            description=commands[CLEANALL_COMMAND][COMMAND_DESCRIPTION],
-            help=commands[CLEANALL_COMMAND][COMMAND_HELP]
-        )
-        async def clean_all(ctx):
-            if ctx.channel.id == ADMIN_CHANNEL:
-                logging.info("Cleaning all info.")
-                for attrs in self.battles.values():
-                    await attrs[1].delete()
-                    await attrs[2].delete()
-                    logging.info(f"{attrs[1]} was deleted.")
-                self.battles.clear()
-            else:
-                await ctx.reply("Nice try you dummy.")
-
-        @self.command(
-            name=commands[CLEANARENA_COMMAND][COMMAND_KEYWORD_ACCESSOR],
-            pass_context=commands[CLEANARENA_COMMAND][COMMAND_CONTEXT_ACCESSOR],
-            enabled=commands[CLEANARENA_COMMAND][COMMAND_ENABLE_ACCESSOR],
-            description=commands[CLEANARENA_COMMAND][COMMAND_DESCRIPTION],
-            help=commands[CLEANARENA_COMMAND][COMMAND_HELP]
-        )
-        async def clean_arena(ctx, *args):
-            if ctx.channel.id == ADMIN_CHANNEL:
-                arguments = [*args]
-                logging.info(f"Got arguments to delete: {arguments}")
-                if len(arguments) > 0:
-                    for a in arguments:
-                        cid = int(re.match(CHANNEL_LINK_REGEX, a).group(1))
-                        ch = await self.fetch_channel(cid)
-                        logging.info(f"Deleting channel {ch} with {cid} id.")
-                        if ch is not None and ch.id in self.battles:
-                            await self.info_channel(ARENA_DELETED % ch.name)
-                            await self.clean_game(cid)
-            else:
-                await ctx.reply("Nice try you dummy.")
-
-        @self.command(
-            name=commands[PONG_COMMAND][COMMAND_KEYWORD_ACCESSOR],
-            pass_context=commands[PONG_COMMAND][COMMAND_CONTEXT_ACCESSOR],
-            enabled=commands[PONG_COMMAND][COMMAND_ENABLE_ACCESSOR],
-            description=commands[PONG_COMMAND][COMMAND_DESCRIPTION],
-            help=commands[PONG_COMMAND][COMMAND_HELP]
-        )
-        async def pong(ctx, *arg):
-            await ctx.channel.send(f"Pong {[*arg]}")
-
-        @self.command(
-            name=commands[GETPLAYERINFO_COMMAND][COMMAND_KEYWORD_ACCESSOR],
-            pass_context=commands[GETPLAYERINFO_COMMAND][COMMAND_CONTEXT_ACCESSOR],
-            enabled=commands[GETPLAYERINFO_COMMAND][COMMAND_ENABLE_ACCESSOR],
-            description=commands[GETPLAYERINFO_COMMAND][COMMAND_DESCRIPTION],
-            help=commands[GETPLAYERINFO_COMMAND][COMMAND_HELP]
-        )
-        async def get_player_info(ctx):
-            ans = ""
-            for user in ctx.message.mentions:
-                logging.info(f"Getting info about {user.name}")
-                try:
-                    data = self.data_provider.get_player_sessions(user.id)
-                    ans += self.form_player_data(data)
-                except ValueError:
-                    logging.error(
-                        f"Couldn't get info about {user.name} from backed")
-                    ans += CANT_GET_INFO % user.name
-                except Exception as e:
-                    logging.error(e)
-            await ctx.reply(ans if len(ans) > 0 else NO_INFO)
-
-        @self.command(
-            name=commands[LAUNCHEDARENAS_COMMAND][COMMAND_KEYWORD_ACCESSOR],
-            pass_context=commands[LAUNCHEDARENAS_COMMAND][COMMAND_CONTEXT_ACCESSOR],
-            enabled=commands[LAUNCHEDARENAS_COMMAND][COMMAND_ENABLE_ACCESSOR],
-            description=commands[LAUNCHEDARENAS_COMMAND][COMMAND_DESCRIPTION],
-            help=commands[LAUNCHEDARENAS_COMMAND][COMMAND_HELP]
-        )
-        async def ps_battles(ctx):
-            ans = ARENA_INFO_TOPIC
-            num = 1
-            if len(self.battles) > 0:
-                for b in self.battles:
-                    ans += ARENA_INFO_STRING % (
-                        num,
-                        b[1].name,
-                        ARENA_IN_PROGRESS_STRING if b[0].state.game_in_progress else ARENA_ENDED_STRING,
-                        b[0].state.dead_counter,
-                        b[0].state.player_counter
+                        f"Starting battle with arguments {parsed_args}")
+                    role = await self.create_arena_role(ctx.guild)
+                    text_channel = await self.create_battle_channel(ctx.guild, role)
+                    players = await self.get_players(text_channel, parsed_args[TOPIC_ACCESSOR])
+                    if len(players) == 0:
+                        # not enough players
+                        s = f"Stopped battle in {text_channel.name}. No players."
+                        logging.info(s)
+                        await self.send_admin(s)
+                        return
+                    await self.give_role(players, role)
+                    new_battle = Quiz(
+                        text_channel.id,
+                        ctx.me,
+                        players,
+                        self.data_provider.topics[parsed_args[TOPIC_ACCESSOR]],
+                        self.data_provider.get_questions(
+                            parsed_args[QUESTION_AMOUNT_ACCESSOR], parsed_args[TOPIC_ACCESSOR])
                     )
-                    num += 1
-            else:
-                ans += "None."
-            await ctx.reply(ans)
+                    self.battles[new_battle.cid] = [
+                        new_battle, text_channel, role]
+                    try:
+                        await self.launch_game(new_battle)
+                        logging.info(
+                            f"Arena in {text_channel.name} has ended.")
+                        # make all records, ok da?
+                        if new_battle.state.game_ended:
+                            logging.info(
+                                f"Sending info about session in {text_channel.name} to the backend.")
+                            self.data_provider.send_session_info(
+                                new_battle.dump_game())
+                    except Exception as e:
+                        logging.info(
+                            f"Game {new_battle.cid} stopped by exception {e}.")
+                        if new_battle.cid in self.battles:
+                            await self.admin_channel.send(BATTLE_STOPPED_AND_WHY % (text_channel.name, e))
+                            self.battles[new_battle.cid][0].state.game_in_progress = False
+        except KeyError:
+            logging.info("Couldn't deploy arena creation comand.")
 
-        @self.command(
-            name=commands[GETSESSIONINFO_COMMAND][COMMAND_KEYWORD_ACCESSOR],
-            pass_context=commands[GETSESSIONINFO_COMMAND][COMMAND_CONTEXT_ACCESSOR],
-            enabled=commands[GETSESSIONINFO_COMMAND][COMMAND_ENABLE_ACCESSOR],
-            description=commands[GETSESSIONINFO_COMMAND][COMMAND_DESCRIPTION],
-            help=commands[GETSESSIONINFO_COMMAND][COMMAND_HELP]
-        )
-        async def session_info(ctx, *args):
-            ans = ""
-            for i in args:
-                logging.info(f"Getting info about {i} session.")
-                try:
-                    data = self.data_provider.get_session_info(i)
-                    ans += self.form_session_data(data)
-                except ValueError:
-                    logging.error(
-                        f"Couldn't get info about {i} from backed")
-                # except Exception as e:
-                #     logging.error(e)
-                if len(ans) == 0:
-                    ans += CANT_GET_INFO % i
-            await ctx.reply(ans)
+        try:
+            @self.command(
+                name=commands[CLEANALL_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+                pass_context=commands[CLEANALL_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+                enabled=commands[CLEANALL_COMMAND][COMMAND_ENABLE_ACCESSOR],
+                description=commands[CLEANALL_COMMAND][COMMAND_DESCRIPTION],
+                help=commands[CLEANALL_COMMAND][COMMAND_HELP]
+            )
+            async def clean_all(ctx):
+                if ctx.channel.id == ADMIN_CHANNEL:
+                    logging.info("Cleaning all info.")
+                    for attrs in self.battles.values():
+                        await attrs[1].delete()
+                        await attrs[2].delete()
+                        logging.info(f"{attrs[1]} was deleted.")
+                    self.battles.clear()
+                else:
+                    await ctx.reply("Nice try you dummy.")
+        except KeyError:
+            logging.info("Couldn't deploy \"clean all\" command")
+
+        try:
+            @self.command(
+                name=commands[CLEANARENA_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+                pass_context=commands[CLEANARENA_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+                enabled=commands[CLEANARENA_COMMAND][COMMAND_ENABLE_ACCESSOR],
+                description=commands[CLEANARENA_COMMAND][COMMAND_DESCRIPTION],
+                help=commands[CLEANARENA_COMMAND][COMMAND_HELP]
+            )
+            async def clean_arena(ctx, *args):
+                if ctx.channel.id == ADMIN_CHANNEL:
+                    arguments = [*args]
+                    logging.info(f"Got arguments to delete: {arguments}")
+                    if len(arguments) > 0:
+                        for a in arguments:
+                            cid = int(re.match(CHANNEL_LINK_REGEX, a).group(1))
+                            ch = await self.fetch_channel(cid)
+                            logging.info(
+                                f"Deleting channel {ch} with {cid} id.")
+                            if ch is not None and ch.id in self.battles:
+                                await self.info_channel.send(ARENA_DELETED % ch.name)
+                                await self.clean_game(cid)
+                else:
+                    await ctx.reply("Nice try you dummy.")
+        except KeyError:
+            logging.info("Couldn't deploy arena deletion comand.")
+
+        try:
+            @self.command(
+                name=commands[PONG_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+                pass_context=commands[PONG_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+                enabled=commands[PONG_COMMAND][COMMAND_ENABLE_ACCESSOR],
+                description=commands[PONG_COMMAND][COMMAND_DESCRIPTION],
+                help=commands[PONG_COMMAND][COMMAND_HELP]
+            )
+            async def pong(ctx, *arg):
+                await ctx.channel.send(f"Pong {[*arg]}")
+        except KeyError:
+            logging.info("Couldn't deploy pong comand.")
+
+        try:
+            @self.command(
+                name=commands[GETPLAYERINFO_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+                pass_context=commands[GETPLAYERINFO_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+                enabled=commands[GETPLAYERINFO_COMMAND][COMMAND_ENABLE_ACCESSOR],
+                description=commands[GETPLAYERINFO_COMMAND][COMMAND_DESCRIPTION],
+                help=commands[GETPLAYERINFO_COMMAND][COMMAND_HELP]
+            )
+            async def get_player_info(ctx):
+                ans = ""
+                for user in ctx.message.mentions:
+                    logging.info(f"Getting info about {user.name}")
+                    try:
+                        data = self.data_provider.get_player_sessions(user.id)
+                        ans += self.form_player_data(data)
+                    except ValueError:
+                        logging.error(
+                            f"Couldn't get info about {user.name} from backed")
+                        ans += CANT_GET_INFO % user.name
+                    except Exception as e:
+                        logging.error(e)
+                await ctx.reply(ans if len(ans) > 0 else NO_INFO)
+        except KeyError:
+            logging.info("Couldn't deploy comand for getting player info.")
+
+        try:
+            @self.command(
+                name=commands[LAUNCHEDARENAS_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+                pass_context=commands[LAUNCHEDARENAS_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+                enabled=commands[LAUNCHEDARENAS_COMMAND][COMMAND_ENABLE_ACCESSOR],
+                description=commands[LAUNCHEDARENAS_COMMAND][COMMAND_DESCRIPTION],
+                help=commands[LAUNCHEDARENAS_COMMAND][COMMAND_HELP]
+            )
+            async def ps_battles(ctx):
+                ans = ARENA_INFO_TOPIC
+                num = 1
+                if len(self.battles) > 0:
+                    for b in self.battles.values():
+                        ans += ARENA_INFO_STRING % (
+                            num,
+                            b[1].name,
+                            ARENA_IN_PROGRESS_STRING if b[0].state.game_in_progress else ARENA_ENDED_STRING,
+                            b[0].state.dead_counter,
+                            b[0].state.player_counter
+                        )
+                        num += 1
+                else:
+                    ans += "None."
+                await ctx.reply(ans)
+        except KeyError:
+            logging.info("Couldn't deploy ps command")
+
+        try:
+            @self.command(
+                name=commands[GETSESSIONINFO_COMMAND][COMMAND_KEYWORD_ACCESSOR],
+                pass_context=commands[GETSESSIONINFO_COMMAND][COMMAND_CONTEXT_ACCESSOR],
+                enabled=commands[GETSESSIONINFO_COMMAND][COMMAND_ENABLE_ACCESSOR],
+                description=commands[GETSESSIONINFO_COMMAND][COMMAND_DESCRIPTION],
+                help=commands[GETSESSIONINFO_COMMAND][COMMAND_HELP]
+            )
+            async def session_info(ctx, *args):
+                ans = ""
+                for i in args:
+                    logging.info(f"Getting info about {i} session.")
+                    try:
+                        data = self.data_provider.get_session_info(i)
+                        ans += self.form_session_data(data)
+                    except ValueError:
+                        logging.error(
+                            f"Couldn't get info about {i} from backed")
+                    # except Exception as e:
+                    #     logging.error(e)
+                    if len(ans) == 0:
+                        ans += CANT_GET_INFO % i
+                await ctx.reply(ans)
+        except KeyError:
+            logging.info("Couldn't deploy comand for getting session info")
 
     def form_player_data(self, data: dict):
         player = data[PLAYER_ACCESSOR]
@@ -303,14 +329,14 @@ class StudentArenaBot(commands.Bot):
         logging.info(f"Parsed arguments {parsed}")
         return parsed
 
-    async def get_players(self, channel, topic, time=15):
+    async def get_players(self, channel, topic):
         players = []
         info = TOPICS_SEQUENCE % (
             self.data_provider.topics[topic][NAME_ACCESSOR])
-        message = await self.broadcast_invite(channel, time, info)
+        message = await self.broadcast_invite(channel, self.setting.join_seconds, info)
         logging.info(f"Sent invite for {channel.name}.")
         await message.add_reaction(JOIN_EMOJI)
-        await asyncio.sleep(time)
+        await asyncio.sleep(self.setting.join_seconds)
         message = await self.broadcast_channel.fetch_message(message.id)
         if join_react := message.reactions[0]:
             async for user in join_react.users():
@@ -380,7 +406,7 @@ class StudentArenaBot(commands.Bot):
 
     async def kick_players(self, players, role, channel):
         for p in players:
-            await channel.send(SHOUTS[random.randint(0, len(SHOUTS) - 1)] + f"{p.name} was removed!")
+            await channel.send(SHOUTS[random.randint(0, len(SHOUTS) - 1)] + PLAYER_REMOVED % p.id)
             await p.remove_roles(role)
 
     async def give_role(self, players, role):
@@ -401,7 +427,8 @@ class StudentArenaBot(commands.Bot):
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(read_messages=False),
             guild.me: discord.PermissionOverwrite(read_messages=True),
-            role: discord.PermissionOverwrite(read_messages=True)
+            role: discord.PermissionOverwrite(
+                read_messages=True, send_messages=False)
         }
 
         channel = await guild.create_text_channel(name, overwrites=overwrites, category=guild.categories[0])
@@ -410,8 +437,8 @@ class StudentArenaBot(commands.Bot):
 
     async def create_arena_role(self, guild):
         role_name = BATTLE_ROLE_TEMPLATE % (len(self.battles) + 1)
-        # add random color generation
-        role = await guild.create_role(name=role_name)
+        # add random color generation -- done
+        role = await guild.create_role(name=role_name, colour=self.get_random_color())
         logging.info(f"{role_name} role was created. {role}")
         return role
 
@@ -432,7 +459,7 @@ class StudentArenaBot(commands.Bot):
             if not player.answered:
                 player.answered = True
                 self.answers[player.uid] = VARIANTS[str(payload.emoji)]
-                await self.battles[cid][1].send(PLAYER_ANSWERED % player.name)
+                await self.battles[cid][1].send(PLAYER_ANSWERED % player.uid)
                 logging.info(f"{member.name} is making decision!")
             else:
                 await quiz.question_message.remove_reaction(payload.emoji, member)
@@ -454,6 +481,10 @@ class StudentArenaBot(commands.Bot):
             await context.reply(COMMAND_ERROR % exception)
             return
         return await super().on_command_error(context, exception)
+
+    def get_random_color(self):
+        return discord.Colour.from_rgb(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+
     # pathetic attempt to make canceling answer
     # async def on_reaction_remove(self, reaction, user):
     #     cid = reaction.message.channel.id
@@ -468,3 +499,9 @@ class StudentArenaBot(commands.Bot):
     #         if player.answered:
     #             player.answered = False
     #             logging.info(f"{user.name} canceled his answer!")
+
+
+class Settings(object):
+    def __init__(self, settings) -> None:
+        super().__init__()
+        self.join_seconds = settings[JOIN_SECONDS_ACCESSOR]

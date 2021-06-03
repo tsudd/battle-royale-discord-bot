@@ -50,6 +50,7 @@ def sessions_api(request):
 @api_view(["GET"])
 def topics(request):
     if request.method == 'GET':
+        print(request.META.get("Authorization", None))
         return Response(get_topics())
 
 
@@ -57,9 +58,12 @@ def topics(request):
 def questions(request):
     if request.method == "GET":
         params = dict(request.query_params)
+        amount = 10
         if AMOUNT_QUERY in params:
             amount = int(params[AMOUNT_QUERY][0])
         if TOPIC_QUERY in params:
+            if params[TOPIC_QUERY][0] == "5":
+                return Response(get_mixed_questions(amount))
             return Response(get_questions(params[TOPIC_QUERY][0], amount))
         else:
             return Response(status=status.HTTP_204_NO_CONTENT)

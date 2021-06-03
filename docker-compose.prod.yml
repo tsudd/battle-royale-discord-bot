@@ -2,31 +2,31 @@ version: "3"
 
 services:
   backend:
-    image: arenabot-api
+    image: arenabot-api-prod
     container_name: arenabot-backend
     user: appuser
-    build: restful_backend/
+    build:
+      context: ./restful_backend
+      dockerfile: Dockerfile.prod
     env_file:
-      - restful_backend/.env
-    ports:
-      - 8000:8000
+      - restful_backend/prod.env
+    expose:
+      - 8000
     volumes:
-      - ./restful_backend/service/service/:/home/appuser/project/service/
-      - ./restful_backend/service/firestore:/home/appuser/project/firestore/
-      - ./botconfigs/:/home/appuser/project/firestore/firebase/
+      - ./botconfigs/:/home/appuser/project/firestore/farebase/
     command: /bin/bash -c "
       export GOOGLE_APPLICATION_CREDENTIALS="/home/appuser/project/firestore/firebase/sudent-arena-bot-firebase-adminsdk-ps8j6-7da2d15a35.json" &&
       python3 manage.py migrate &&
       python3 manage.py runserver 0.0.0.0:8000"
 
   bot:
-    image: student-arena-bot
+    image: student-arena-bot-prod
     container_name: arena-bot
     user: botuser
     build: bot/
     env_file:
       - bot/.env
-      - restful_backend/.env
+      - restful_backend/prod.env
     ports:
       - 1337:1337
     volumes:

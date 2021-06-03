@@ -14,7 +14,7 @@ class DataProvider(object):
     """
 
     def __init__(self, back_url) -> None:
-        logging.info("Creating date provider")
+        logging.info("Creating data provider")
 
         self.topic_emojis = {}
         self.backend_base_url = back_url

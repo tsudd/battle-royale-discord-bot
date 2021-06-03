@@ -203,3 +203,6 @@ def _get_answers(r_ref, variants):
                                       1].get(QUESTION_VARIANT)
         })
     return ans
+
+
+# def get_mixed_questions(amount=10):

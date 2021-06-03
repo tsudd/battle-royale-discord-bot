@@ -30,6 +30,7 @@ INFO_CHANNEL_ACCESSOR = "infoChannel"
 CHANNELS_CATEGORY_ACCESSOR = "channelsCategory"
 SELF_BOT_OPTION = "selfBot"
 BACKEND_BASE_URL_ACCESSOR = "backendBaseUrl"
+JOIN_SECONDS_ACCESSOR = "waitingForJoin"
 
 COMMANDS_ACCESSOR = "commands"
 COMMAND_NAME_ACCESSOR = "commandName"
@@ -93,7 +94,7 @@ TOPICS_SELECTION_MESSAGE = "To start arena choose one or more topics below.\n" \
 BATTLE_ABORTED = "Battle in %s was aborted: holding for too long."
 COMMAND_ERROR = "Couldn't exec the command: %s."
 END_OF_ANSWERING = "Answers recorded!"
-PLAYERS_KICKED = "%s was kicked from %s."
+PLAYERS_KICKED = "<@%d> was kicked from %s."
 BATTLE_STOPPED_AND_WHY = "Battle in %s was stop by %s."
 CANT_GET_INFO = "Couldn't get info about %s."
 
@@ -117,7 +118,8 @@ CLICK_TO_START_MESSAGE = f"Please, vote {JOIN_EMOJI} below to start."
 
 ROUND_START_TOPIC = "Round %d.\nPlayers dead %d. Players alive %d.\n"
 
-PLAYER_ANSWERED = "%s answered!"
+PLAYER_ANSWERED = "<@%d> answered!"
+PLAYER_REMOVED = "<@%d> was removed!"
 
 SHOUTS = [
     "Poor thing! ",

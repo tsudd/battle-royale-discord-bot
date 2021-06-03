@@ -10,7 +10,7 @@ running tests in different topics.
 ### Build backend and DB
 
 ```
-$ docker-compose up
+$ docker-compose up --build
 ```
 
 After build service available on http://0.0.0.0:8000
