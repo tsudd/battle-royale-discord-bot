@@ -36,7 +36,7 @@ class DataProvider(object):
             self.topic_emojis[t[EMOJI_ACCESSOR]] = t['id']
 
     def _get_topics(self):
-        r = DataProvider._make_get(self.backend_base_url + TOPICS_URL)
+        r = DataProvider.make_get(self.backend_base_url + TOPICS_URL)
         if r is None:
             raise HTTPError(HTTP_ERROR_MESSAGE)
         gotted_topics = r.json()
@@ -46,14 +46,27 @@ class DataProvider(object):
         return topics
 
     def get_questions(self, amount, topic):
-        r = DataProvider._make_get(
+        r = DataProvider.make_get(
             self.backend_base_url + QUESTIONS_URL + f"?{TOPIC_QUERY}={topic}&{AMOUNT_QUERY}={amount}")
         if r is None:
             raise HTTPError(HTTP_ERROR_MESSAGE)
         return r.json()
 
+    def put_questions(self, file, content_type):
+        headers = {
+            "Content-type": content_type
+        }
+        r = DataProvider.make_put(
+            self.backend_base_url + QUESTIONS_URL,
+            headers,
+            file
+        )
+        if r is None:
+            raise HTTPError()
+        return r.json()
+
     def get_player_sessions(self, uid, amount=10):
-        r = DataProvider._make_get(
+        r = DataProvider.make_get(
             self.backend_base_url + PLAYERS_URL +
             f"/{uid}" + f"?{AMOUNT_QUERY}={amount}"
         )
@@ -65,7 +78,7 @@ class DataProvider(object):
         return r.json()
 
     def get_session_info(self, sid):
-        r = DataProvider._make_get(
+        r = DataProvider.make_get(
             self.backend_base_url + SESSIONS_URL + f"?{ID_QUERY}={sid}"
         )
         if r is None:
@@ -75,30 +88,42 @@ class DataProvider(object):
         return r.json()
 
     def send_session_info(self, data):
-        r = DataProvider._make_post(
+        r = DataProvider.make_post(
             self.backend_base_url + SESSIONS_URL, data=data)  # another one
 
     @ staticmethod
-    def _make_get(url, headers={}):
+    def make_get(url, headers=None):
         try:
             response = requests.get(url, headers=headers)
             response.raise_for_status()
         except HTTPError as http_error:
             logging.info(f"{http_error} in get request to {url}.")
         except Exception as err:
-            logging.info(f"Error {err} occured in request to {url}.")
+            logging.info(f"Error {err} occurred in request to {url}.")
         else:
             return response
 
     @ staticmethod
-    def _make_post(url, headers={}, data={}):
+    def make_post(url, headers=None, data=None):
         try:
             response = requests.post(url, headers=headers, json=data)
             response.raise_for_status()
         except HTTPError as http_error:
             logging.info(f"{http_error} in post request to {url}.")
         except Exception as err:
-            logging.info(f"Error {err} occured in request to {url}.")
+            logging.info(f"Error {err} occurred in request to {url}.")
+        else:
+            return response
+
+    @staticmethod
+    def make_put(url, headers=None, data=None):
+        try:
+            response = requests.put(url, headers=headers, data=data)
+            response.raise_for_status()
+        except HTTPError as http_error:
+            logging.info(f"{http_error} in post request to {url}.")
+        except Exception as err:
+            logging.info(f"Error {err} occurred in request to {url}.")
         else:
             return response
 

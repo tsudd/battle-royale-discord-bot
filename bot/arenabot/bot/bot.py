@@ -241,6 +241,30 @@ class StudentArenaBot(commands.Bot):
         except KeyError:
             logging.info("Couldn't deploy comand for getting session info")
 
+        try:
+            @self.command(
+                name=commands[LOAD_QUESTIONS_ACCESSOR][COMMAND_KEYWORD_ACCESSOR],
+                pass_context=commands[LOAD_QUESTIONS_ACCESSOR][COMMAND_CONTEXT_ACCESSOR],
+                enabled=commands[LOAD_QUESTIONS_ACCESSOR][COMMAND_ENABLE_ACCESSOR],
+                description=commands[LOAD_QUESTIONS_ACCESSOR][COMMAND_DESCRIPTION],
+                help=commands[LOAD_QUESTIONS_ACCESSOR][COMMAND_HELP]
+            )
+            async def upload_questions(ctx, *args):
+                if ctx.channel.id == ADMIN_CHANNEL:
+                    ans = ""
+                    for a in ctx.message.attachments:
+                        try:
+                            response = self.data_provider.put_questions(
+                                await a.read(), a.content_type)
+                            ans += LOADED_QUESTIONS % response[AMOUNT_QUERY]
+                        except Exception:
+                            ans += PUT_QUESTIONS_ERROR % a.filename
+                    if len(ans) == 0:
+                        ans = NO_ATTACHMENTS
+                await ctx.reply(ans)
+        except KeyError:
+            logging.info("Couldn't deploy comand for questions loading.")
+
     def form_player_data(self, data: dict):
         player = data[PLAYER_ACCESSOR]
         ans = PLAYER_INFO % (
@@ -459,7 +483,6 @@ class StudentArenaBot(commands.Bot):
             if not player.answered:
                 player.answered = True
                 self.answers[player.uid] = VARIANTS[str(payload.emoji)]
-                await self.battles[cid][1].send(PLAYER_ANSWERED % player.uid)
                 logging.info(f"{member.name} is making decision!")
             else:
                 await quiz.question_message.remove_reaction(payload.emoji, member)

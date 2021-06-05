@@ -1,8 +1,9 @@
+from .parsers import CSVTextParser
 from threading import stack_size
 from .firebase import *
 from django.shortcuts import render
-from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework import status, views
+from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 
 import logging
@@ -50,11 +51,11 @@ def sessions_api(request):
 @api_view(["GET"])
 def topics(request):
     if request.method == 'GET':
-        print(request.META.get("Authorization", None))
         return Response(get_topics())
 
 
-@api_view(["GET"])
+@api_view(["GET", "PUT"])
+@parser_classes([CSVTextParser])
 def questions(request):
     if request.method == "GET":
         params = dict(request.query_params)
@@ -67,6 +68,14 @@ def questions(request):
             return Response(get_questions(params[TOPIC_QUERY][0], amount))
         else:
             return Response(status=status.HTTP_204_NO_CONTENT)
+    elif request.method == "PUT":
+        try:
+            res = put_questions(request.data)
+            return Response({
+                AMOUNT_QUERY: res
+            })
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])

@@ -31,6 +31,7 @@ CHANNELS_CATEGORY_ACCESSOR = "channelsCategory"
 SELF_BOT_OPTION = "selfBot"
 BACKEND_BASE_URL_ACCESSOR = "backendBaseUrl"
 JOIN_SECONDS_ACCESSOR = "waitingForJoin"
+LOAD_QUESTIONS_ACCESSOR = "loadQuestions"
 
 COMMANDS_ACCESSOR = "commands"
 COMMAND_NAME_ACCESSOR = "commandName"
@@ -121,13 +122,19 @@ ROUND_START_TOPIC = "Round %d.\nPlayers dead %d. Players alive %d.\n"
 PLAYER_ANSWERED = "<@%d> answered!"
 PLAYER_REMOVED = "<@%d> was removed!"
 
+NO_ATTACHMENTS = "No attachments to the message. Attache file to send questions."
+PUT_QUESTIONS_ERROR = "Couldn't load questions from %s. Make sure, that file format is csv and filled correctly."
+
+LOADED_QUESTIONS = "Loaded %d questions to the database.\n"
+
 SHOUTS = [
     "Poor thing! ",
     "Damn son... ",
     "Mission failed. ",
     "Bruh... ",
-    "Bakayaro...",
-    "It was going so well..."
+    "Bakayaro... ",
+    "It was going so well... ",
+    "Didn't want to say it, but... "
 ]
 
 # battle settings

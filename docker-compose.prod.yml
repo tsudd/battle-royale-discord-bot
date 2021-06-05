@@ -13,7 +13,7 @@ services:
     expose:
       - 8000
     volumes:
-      - ./botconfigs/:/home/appuser/project/firestore/farebase/
+      - ./botconfigs/:/home/appuser/project/firestore/firebase/
     command: /bin/bash -c "
       export GOOGLE_APPLICATION_CREDENTIALS="/home/appuser/project/firestore/firebase/sudent-arena-bot-firebase-adminsdk-ps8j6-7da2d15a35.json" &&
       python3 manage.py migrate &&

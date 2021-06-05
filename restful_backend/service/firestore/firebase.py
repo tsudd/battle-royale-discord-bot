@@ -98,11 +98,6 @@ def _get_topic_ref(tid):
     return db.collection(TOPICS_COLLECTION).document(str(tid))
 
 
-def _get_variant_ref(qid, vid):
-    return db.collection(QUESIONS_COLLECTION).document(
-        str(qid)).collection(VARIANTS_ACCESSOR).document(str(vid))
-
-
 def get_topics():
     return _get_dicts_by_refs(TOPICS_COLLECTION)
 
@@ -136,7 +131,7 @@ def get_player_sessions(uid, amount=10):
 
 def _get_dicts_by_refs(collection):
     ans = []
-    docs = db.collection(collection).stream()
+    docs = db.collection(collection).get()
     for d in docs:
         ans.append(d.to_dict())
         ans[-1][ID_ACCESSOR] = d.id
@@ -205,4 +200,50 @@ def _get_answers(r_ref, variants):
     return ans
 
 
-# def get_mixed_questions(amount=10):
+def put_questions(questions):
+    assert type(questions) == list
+    amount = 0
+    for q in questions:
+        new_doc = db.collection(QUESIONS_COLLECTION).add({
+            QUESTION_STRING_FIELD: q[0],
+            QUESTION_RIGHT_ANSWER: q[5],
+            TOPIC_QUERY: _get_topic_ref(q[6])
+        })
+        for i in range(1, 5):
+            new_doc[1].collection(VARIANTS_ACCESSOR).document(str(i)).set({
+                QUESTION_VARIANT: q[i]
+            })
+        amount += 1
+    return amount
+
+
+def get_mixed_questions(amount=10):
+    topics = db.collection(TOPICS_COLLECTION).get()
+    ts = int(amount / (len(topics) - 1))
+    questions = {}
+    for t in topics:
+        questions[t.id] = db.collection(
+            QUESIONS_COLLECTION).where(TOPIC_QUERY, "==", _get_topic_ref(t.id)).get()
+    for qs in questions.values():
+        random.shuffle(qs)
+    query = []
+    for qs in questions.values():
+        am = ts
+        while am > 0:
+            if len(qs) == 0:
+                break
+            query.append(qs.pop())
+            am -= 1
+    ans = []
+    for d in query:
+        q_ser = d.to_dict()
+        q = {
+            ID_ACCESSOR: d.id,
+            QUESTION_STRING_FIELD: q_ser[QUESTION_STRING_FIELD],
+            QUESTION_RIGHT_ANSWER: int(q_ser[QUESTION_RIGHT_ANSWER]),
+            TOPIC_QUERY: q_ser[TOPIC_QUERY].id,
+            VARIANTS_ACCESSOR: _get_variants(db.collection(
+                f"{QUESIONS_COLLECTION}/{d.id}/{VARIANTS_ACCESSOR}"))
+        }
+        ans.append(q)
+    return ans

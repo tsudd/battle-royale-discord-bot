@@ -15,6 +15,14 @@ $ docker-compose up --build
 
 After build service available on http://0.0.0.0:8000
 
+### How to build production version
+
+Don't forget to pass configs for bot and backend services in botconfigs directory
+
+```
+docker-compose -f docker-compose.prod.yml up --build
+```
+
 ### Migrations
 
 ```
