@@ -5,9 +5,6 @@ services:
     image: tsudd/student-arena-discord-bot:backend
     container_name: arenabot-backend
     user: appuser
-    build:
-      context: ./restful_backend
-      dockerfile: Dockerfile.prod
     env_file:
       - restful_backend/prod.env
     expose:
@@ -23,7 +20,6 @@ services:
     image: tsudd/student-arena-discord-bot:bot
     container_name: arena-bot
     user: botuser
-    build: bot/
     env_file:
       - bot/.env
       - restful_backend/prod.env
