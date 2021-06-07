@@ -1,0 +1,77 @@
+{
+    "commandPrefix": "!",
+    "adminChannel": 833201507888267265,
+    "broadcastChannel": 835537204188545073,
+    "infoChannel": 835908933725978645,
+    "channelsCategory": 840303711544934407,
+    "backendBaseUrl": "http://172.19.0.2:8000/firestore/",
+    "botToken": "changeMe",
+    "waitingForJoin": 33,
+    "selfBot": false,
+    "commands": {
+        "makeArena": {
+            "commandName": "make arena",
+            "commandKeyWord": "mkarena",
+            "passContext": true,
+            "enabled": true,
+            "description": "Creates an arena and processing game in it.",
+            "help": "Creates an arena and processing game in it."
+        },
+        "cleanAll": {
+            "commandName": "clean all arenas",
+            "commandKeyWord": "clean",
+            "passContext": true,
+            "enabled": true,
+            "description": "Deletes 😧ALL👋🏻 arena channels and roles.",
+            "help": "Deletes 😧ALL👋🏻 arena channels and roles."
+        },
+        "cleanArena": {
+            "commandName": "clean arena",
+            "commandKeyWord": "rmarena",
+            "passContext": true,
+            "enabled": true,
+            "description": "Deletes one exact arena and game in it.",
+            "help": "Deletes one exact arena and game in it."
+        },
+        "pong": {
+            "commandName": "pong",
+            "commandKeyWord": "ping",
+            "passContext": true,
+            "enabled": true,
+            "description": "Simple command for testing bot connection.",
+            "help": "Simple command for testing bot connection."
+        },
+        "getPlayerInfo": {
+            "commandName": "get player info",
+            "commandKeyWord": "getp",
+            "passContext": true,
+            "enabled": true,
+            "description": "Returns player statistics and 10(or less) last played arenas.",
+            "help": "Returns player statistics and 10(or less) last played arenas."
+        },
+        "ps": {
+            "commandName": "list launched arenas",
+            "commandKeyWord": "ps",
+            "passContext": true,
+            "enabled": true,
+            "description": "Returns list of launched arenas.",
+            "help": "List launched arenas"
+        },
+        "sessionInfo": {
+            "commandName": "session info",
+            "commandKeyWord": "gets",
+            "passContext": true,
+            "enabled": true,
+            "description": "Returns information about game session.",
+            "help": "Info about session."
+        },
+        "loadQuestions": {
+            "commandName": "loading questions",
+            "commandKeyWord": "loadquestions",
+            "passContext": true,
+            "enabled": true,
+            "description": "Loads questions from attachment",
+            "help": "Loads questions with attachments."
+        }
+    }
+}

@@ -136,4 +136,5 @@ bot/arenabot/bot/info.py
 bot/arenabot/config.json
 
 #firebase
-botconfigs/*
+botconfigs/sudent-arena-bot-firebase-adminsdk-ps8j6-7da2d15a35.json
+botconfigs/config_example.json
