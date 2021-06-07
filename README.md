@@ -5,6 +5,11 @@ players take a test in the form of a battle royale competition. Also, bot has si
 statistic data about the participation of players. Basically, bot represents an interface for a teacher to manage and
 running tests in different topics.
 
+# Deploy
+
+Ready-to-go solutions can be found on [dockerHub](https://hub.docker.com/repository/docker/tsudd/student-arena-discord-bot). Just pull images from there and run
+them locally or on a server.
+
 ## Building and running
 
 ### Build backend and DB
@@ -54,12 +59,13 @@ Bot creates and process arenas(battle, game) with the next rules:
 1. Creating and launching arena battles on a server with parameters like amount of questions, time for answering,
    topics and processes it according to the rules;
 2. Collecting and processing data about players game results;
-3. Storing data;
+3. Storing data on Firestore;
 4. Representing data about players.
 5. Additional commands for deleting arenas, cleaning channels and other.
+6. Loading new questions with CSV-files through bot on cloud.
 
 ## Additional
 
 - Create testing system. Feature, which makes bot be able to read a code provided by user, start docker container and
   test this code with specific configuration;
-- Make command for deploying bot on any server.
+- Make command for deploying bot on any discord server.

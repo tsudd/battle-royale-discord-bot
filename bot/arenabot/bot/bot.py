@@ -261,7 +261,7 @@ class StudentArenaBot(commands.Bot):
                             ans += PUT_QUESTIONS_ERROR % a.filename
                     if len(ans) == 0:
                         ans = NO_ATTACHMENTS
-                await ctx.reply(ans)
+                    await ctx.reply(ans)
         except KeyError:
             logging.info("Couldn't deploy comand for questions loading.")
 

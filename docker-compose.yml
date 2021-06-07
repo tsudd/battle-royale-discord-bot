@@ -2,7 +2,7 @@ version: "3"
 
 services:
   backend:
-    image: arenabot-api
+    image: arenabot-api-test
     container_name: arenabot-backend
     user: appuser
     build: restful_backend/
@@ -20,7 +20,7 @@ services:
       python3 manage.py runserver 0.0.0.0:8000"
 
   bot:
-    image: student-arena-bot
+    image: student-arena-bot-test
     container_name: arena-bot
     user: botuser
     build: bot/
