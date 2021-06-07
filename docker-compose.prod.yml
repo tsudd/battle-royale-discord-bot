@@ -2,7 +2,7 @@ version: "3"
 
 services:
   backend:
-    image: student-arena-bot-api
+    image: tsudd/student-arena-discord-bot:backend
     container_name: arenabot-backend
     user: appuser
     build:
@@ -20,7 +20,7 @@ services:
       python3 manage.py runserver 0.0.0.0:8000"
 
   bot:
-    image: student-arena-bot
+    image: tsudd/student-arena-discord-bot:bot
     container_name: arena-bot
     user: botuser
     build: bot/
